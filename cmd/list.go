@@ -9,27 +9,28 @@ import (
 	"time"
 )
 
-// ListCmd creates a new list command.
 func ListCmd(db *sql.DB) *cobra.Command {
-	var listType string
-
-	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all time entries or active timers",
+	return &cobra.Command{
+		Use:   "list [timers|entries]",
+		Short: "List all active timers or time entries",
+		Long:  `List command is used to list all active timers or time entries. If no argument is provided, it defaults to listing timers.`,
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			listType := "timers"
+			if len(args) > 0 {
+				listType = args[0]
+			}
+
 			switch listType {
 			case "entries":
 				listTimeEntries(db)
 			case "timers":
 				listActiveTimers(db)
 			default:
-				fmt.Println("Invalid list type. Please specify 'entries' or 'timers'.")
+				fmt.Println("Invalid argument. Please specify 'entries' or 'timers'.")
 			}
 		},
 	}
-
-	cmd.Flags().StringVarP(&listType, "type", "t", "timers", "Specify what to list: 'entries' or 'timers'")
-	return cmd
 }
 
 func listTimeEntries(db *sql.DB) {
