@@ -14,7 +14,8 @@ func StopCmd(db *sql.DB) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			taskName := args[0]
-			timer.StopTimer(db, taskName)
+			description := ""
+			timer.StopTimer(db, taskName, description)
 		},
 	}
 }

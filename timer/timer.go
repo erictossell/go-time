@@ -7,9 +7,14 @@ import (
 	"time"
 )
 
-func IsTimerRunning(db *sql.DB) bool {
+type ActiveTimer struct {
+	TaskName  string
+	StartTime time.Time
+}
+
+func IsTimerRunning(db *sql.DB, taskName string) bool {
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM timer_state WHERE is_running = 1").Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM timer_state WHERE is_running = 1 AND task_name = ?", taskName).Scan(&count)
 	if err != nil {
 		fmt.Println("Error checking timer state:", err)
 		return false
@@ -17,9 +22,34 @@ func IsTimerRunning(db *sql.DB) bool {
 	return count > 0
 }
 
+func GetActiveTimers(db *sql.DB) ([]ActiveTimer, error) {
+	query := "SELECT task_name, start_time FROM timer_state WHERE is_running = 1"
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("error querying active timers: %w", err)
+	}
+	defer rows.Close()
+
+	var timers []ActiveTimer
+	for rows.Next() {
+		var timer ActiveTimer
+		if err := rows.Scan(&timer.TaskName, &timer.StartTime); err != nil {
+			return nil, fmt.Errorf("error scanning timer row: %w", err)
+		}
+		timers = append(timers, timer)
+	}
+
+	// Check for errors from iterating over rows.
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over timer rows: %w", err)
+	}
+
+	return timers, nil
+}
+
 func StartTimer(db *sql.DB, taskName string) {
-	if IsTimerRunning(db) {
-		fmt.Println("Timer is already running")
+	if IsTimerRunning(db, taskName) {
+		fmt.Println("Timer is already running for task:", taskName)
 		return
 	}
 
@@ -33,13 +63,12 @@ func StartTimer(db *sql.DB, taskName string) {
 	fmt.Println("Timer started for task:", taskName)
 }
 
-func StopTimer(db *sql.DB, description string) {
-	var taskName string
+func StopTimer(db *sql.DB, taskName, description string) {
 	var startTime time.Time
-	err := db.QueryRow("SELECT task_name, start_time FROM timer_state WHERE is_running = 1").Scan(&taskName, &startTime)
+	err := db.QueryRow("SELECT start_time FROM timer_state WHERE is_running = 1 AND task_name = ?", taskName).Scan(&startTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println("No timer is running")
+			fmt.Println("No timer is running for task:", taskName)
 		} else {
 			fmt.Println("Error fetching running timer:", err)
 		}
@@ -50,6 +79,12 @@ func StopTimer(db *sql.DB, description string) {
 	godb.SaveTimeEntry(db, taskName, description, startTime, endTime) // Use the correct package prefix
 	if err != nil {
 		fmt.Println("Error saving time entry:", err)
+		return
+	}
+
+	_, err = db.Exec("UPDATE timer_state SET is_running = 0 WHERE task_name = ?", taskName)
+	if err != nil {
+		fmt.Println("Error updating timer state:", err)
 		return
 	}
 
