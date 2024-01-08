@@ -15,8 +15,8 @@ func main() {
 	}
 	defer database.Close()
 
-	var rootCmd = &cobra.Command{Use: "timetracker"}
-	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ListCmd(database)) // Pass the database connection here
+	var rootCmd = &cobra.Command{Use: "go-time"}
+	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ListCmd(database), cmd.TuiCmd(database)) // Pass the database connection here
 	// Add other commands as needed
 	rootCmd.Execute()
 }
