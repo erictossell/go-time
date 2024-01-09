@@ -22,7 +22,7 @@ func IsTimerRunning(db *sql.DB, taskName string) bool {
 	return count > 0
 }
 
-func GetActiveTimers(db *sql.DB) ([]ActiveTimer, error) {
+func ListActiveTimers(db *sql.DB) ([]ActiveTimer, error) {
 	query := "SELECT task_name, start_time FROM timer_state WHERE is_running = 1"
 	rows, err := db.Query(query)
 	if err != nil {

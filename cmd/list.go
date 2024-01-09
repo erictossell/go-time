@@ -45,7 +45,7 @@ func listTimeEntries(db *sql.DB) {
 }
 
 func listActiveTimers(db *sql.DB) {
-	timers, err := timer.GetActiveTimers(db) // Implement this function in your timer package
+	timers, err := timer.ListActiveTimers(db) // Implement this function in your timer package
 	if err != nil {
 		fmt.Println("Error listing active timers:", err)
 		return
