@@ -8,6 +8,7 @@ import (
 )
 
 type ActiveTimer struct {
+	ID        int
 	TaskName  string
 	StartTime time.Time
 }
