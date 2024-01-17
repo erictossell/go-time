@@ -1,13 +1,12 @@
-package timer
+package db
 
 import (
 	"database/sql"
 	"fmt"
-	godb "go-time/db" // Adjust this import path as necessary
 	"time"
 )
 
-type ActiveTimer struct {
+type Timer struct {
 	ID        int
 	TaskName  string
 	StartTime time.Time
@@ -23,7 +22,7 @@ func IsTimerRunning(db *sql.DB, taskName string) bool {
 	return count > 0
 }
 
-func ListActiveTimers(db *sql.DB) ([]ActiveTimer, error) {
+func ListTimers(db *sql.DB) ([]Timer, error) {
 	query := "SELECT task_name, start_time FROM timer_state WHERE is_running = 1"
 	rows, err := db.Query(query)
 	if err != nil {
@@ -31,9 +30,9 @@ func ListActiveTimers(db *sql.DB) ([]ActiveTimer, error) {
 	}
 	defer rows.Close()
 
-	var timers []ActiveTimer
+	var timers []Timer
 	for rows.Next() {
-		var timer ActiveTimer
+		var timer Timer
 		if err := rows.Scan(&timer.TaskName, &timer.StartTime); err != nil {
 			return nil, fmt.Errorf("error scanning timer row: %w", err)
 		}
@@ -77,7 +76,7 @@ func StopTimer(db *sql.DB, taskName, description string) {
 	}
 
 	endTime := time.Now()
-	godb.SaveTimeEntry(db, taskName, description, startTime, endTime) // Use the correct package prefix
+	SaveTimeEntry(db, taskName, description, startTime, endTime) // Use the correct package prefix
 	if err != nil {
 		fmt.Println("Error saving time entry:", err)
 		return

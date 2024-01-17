@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	godb "go-time/db"
-	"go-time/timer"
+
 	"os"
 	"strconv"
 
@@ -12,8 +12,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbletea"
 )
-
-type tickMsg struct{}
 
 type keymap struct {
 	start key.Binding
@@ -25,15 +23,14 @@ type keymap struct {
 }
 
 type model struct {
-	db           *sql.DB
-	currentView  string
-	timeEntries  []godb.TimeEntry
-	activeTimers string
-	keymap       keymap
-	help         help.Model
-	topbar       string
-	cursor       int
-	selected     map[int]struct{}
+	db          *sql.DB
+	currentView string
+	timeEntries []godb.TimeEntry
+	timers      []godb.Timer
+	keymap      keymap
+	help        help.Model
+	cursor      int
+	selected    map[int]struct{}
 	// ... other fields as needed
 }
 
@@ -154,12 +151,12 @@ func (m model) timeEntriesView() string {
 
 func (m model) activeTimersView() string {
 	view := m.topBarView()
-	timers, err := timer.ListActiveTimers(m.db)
+	err := m.updateTimers()
 	if err != nil {
 		return "Error: " + err.Error()
 	}
 
-	for i, timer := range timers {
+	for i, timer := range m.timers {
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
 		if m.cursor == i {
@@ -230,5 +227,13 @@ func (m *model) updateTimeEntries() error {
 		return err
 	}
 	m.timeEntries = entries
+	return nil
+}
+func (m *model) updateTimers() error {
+	timers, err := godb.ListTimers(m.db)
+	if err != nil {
+		return err
+	}
+	m.timers = timers
 	return nil
 }

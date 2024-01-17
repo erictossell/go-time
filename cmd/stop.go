@@ -3,7 +3,7 @@ package cmd
 import (
 	"database/sql"
 	"github.com/spf13/cobra"
-	"go-time/timer"
+	godb "go-time/db"
 )
 
 // StartCmd creates a new start command.
@@ -15,7 +15,7 @@ func StopCmd(db *sql.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			taskName := args[0]
 			description := ""
-			timer.StopTimer(db, taskName, description)
+			godb.StopTimer(db, taskName, description)
 		},
 	}
 }

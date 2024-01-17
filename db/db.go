@@ -8,13 +8,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	db          *sql.DB
-	startTime   time.Time
-	isTimerOn   bool
-	currentTask string
-)
-
 func InitDB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "./timetracker.db")
 	if err != nil {
@@ -49,19 +42,6 @@ func createTables(db *sql.DB) error {
 		return fmt.Errorf("error creating tables: %w", err)
 	}
 	return nil
-}
-
-func doesTableExist() bool {
-	var name string
-	query := `SELECT name FROM sqlite_master WHERE type='table' AND name='time_entries';`
-	err := db.QueryRow(query).Scan(&name)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			fmt.Println("Error checking for time_entries table:", err)
-		}
-		return false
-	}
-	return true
 }
 
 func EditTimeEntry(db *sql.DB, id int, name, description string) error {

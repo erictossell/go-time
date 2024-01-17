@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	godb "go-time/db"
-	timer "go-time/timer" // Adjust this import path as necessary
 	"time"
 )
 
@@ -45,7 +44,7 @@ func listTimeEntries(db *sql.DB) {
 }
 
 func listActiveTimers(db *sql.DB) {
-	timers, err := timer.ListActiveTimers(db) // Implement this function in your timer package
+	timers, err := godb.ListTimers(db) // Implement this function in your timer package
 	if err != nil {
 		fmt.Println("Error listing active timers:", err)
 		return
