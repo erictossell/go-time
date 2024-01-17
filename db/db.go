@@ -7,8 +7,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "./timetracker.db")
+func InitDB(dbFile string) (*sql.DB, error) {
+
+	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)
 	}
