@@ -16,14 +16,18 @@ func EditTimeEntry(db *sql.DB, id int, name, description string) error {
 
 	statement, err := tx.Prepare("UPDATE time_entries SET name = ?, description = ? WHERE id = ?")
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error preparing update statement: %v, rollback error: %v", err, rollbackErr)
+		}
 		return fmt.Errorf("error preparing update statement: %w", err)
 	}
 	defer statement.Close()
 
 	_, err = statement.Exec(name, description, id)
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error executing update statement: %v, rollback error: %v", err, rollbackErr)
+		}
 		return fmt.Errorf("error executing update statement: %w", err)
 	}
 
@@ -61,28 +65,28 @@ func SaveTimeEntry(db *sql.DB, name, description string, start, end time.Time) e
 		return fmt.Errorf("end time cannot be before start time")
 	}
 
-	// Start a transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
 
-	// Prepare statement within the transaction
 	statement, err := tx.Prepare("INSERT INTO time_entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		tx.Rollback() // Rollback in case of an error
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error preparing statement: %v, rollback error: %v", err, rollbackErr)
+		}
 		return fmt.Errorf("error preparing statement: %w", err)
 	}
 	defer statement.Close()
 
-	// Execute the statement
 	_, err = statement.Exec(name, description, start, end)
 	if err != nil {
-		tx.Rollback() // Rollback in case of an error
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("error executing statement: %v, rollback error: %v", err, rollbackErr)
+		}
 		return fmt.Errorf("error executing statement: %w", err)
 	}
 
-	// Commit the transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("error committing transaction: %w", err)
 	}

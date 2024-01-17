@@ -76,7 +76,7 @@ func StopTimer(db *sql.DB, taskName, description string) {
 	}
 
 	endTime := time.Now()
-	SaveTimeEntry(db, taskName, description, startTime, endTime) // Use the correct package prefix
+	err = SaveTimeEntry(db, taskName, description, startTime, endTime) // Use the correct package prefix
 	if err != nil {
 		fmt.Println("Error saving time entry:", err)
 		return

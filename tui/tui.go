@@ -113,16 +113,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var s string
+	var err error
 	switch m.currentView {
 	case "timeEntries":
-		m.updateTimeEntries()
-		s += m.timeEntriesView()
+		err = m.updateTimeEntries()
+		if err != nil {
+			s += "Error: " + err.Error()
+		} else {
+			s += m.timeEntriesView()
+		}
 	case "activeTimers":
-		s += m.activeTimersView()
+		err = m.updateTimers()
+		if err != nil {
+			s += "Error: " + err.Error()
+		} else {
+			s += m.activeTimersView()
+		}
 	case "mainMenu":
 		s += m.mainMenuView()
 	}
 	return s
+
 }
 
 func (m model) timeEntriesView() string {
@@ -208,17 +219,6 @@ func (m model) helpView() string {
 		m.keymap.list,
 		m.keymap.quit,
 	})
-}
-
-func (m *keymap) bindings() []key.Binding {
-	return []key.Binding{
-		m.start,
-		m.stop,
-		m.up,
-		m.down,
-		m.list,
-		m.quit,
-	}
 }
 
 func (m *model) updateTimeEntries() error {

@@ -21,6 +21,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
 	database, err := db.InitDB(dbFile)
 	if err != nil {
 		fmt.Println("Error initializing database:", err)
@@ -29,7 +30,10 @@ func main() {
 	defer database.Close()
 
 	var rootCmd = &cobra.Command{Use: "go-time"}
-	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ListCmd(database), cmd.TuiCmd(database)) // Pass the database connection here
-	// Add other commands as needed
-	rootCmd.Execute()
+	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ListCmd(database), cmd.TuiCmd(database))
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println("Error executing command:", err)
+		os.Exit(1)
+	}
 }
