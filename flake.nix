@@ -25,7 +25,6 @@
     in
     {
 
-      # Provide some binary packages for selected system types.
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
@@ -34,17 +33,15 @@
           go-time = pkgs.buildGoModule {
             pname = "go-time";
             inherit version;
-            # In 'nix develop', we don't need a copy of the source tree
-            # in the Nix store.
             src = ./.;
-
             vendorHash = "sha256-1dhZHKvflnozc70GXonlkdrfESy7iPUOX84u1f5Xy+k=";
           };
+          default = self.packages.${system}.go-time;
         });
-      
+
       # Add dependencies that are only needed for development
       devShells = forAllSystems (system:
-        let 
+        let
           pkgs = nixpkgsFor.${system};
         in
         {
@@ -53,9 +50,6 @@
           };
         });
 
-      # The default package for 'nix build'. This makes sense if the
-      # flake provides only one package or there is a clear "main"
-      # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.go-time);
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
     };
 }
