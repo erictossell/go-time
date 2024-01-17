@@ -38,7 +38,7 @@
             # in the Nix store.
             src = ./.;
 
-            vendorHash = "sha256-1R5QEJvbIuXU/2uyMhlWokxDDM1iycISORiSHQPRpj4=";
+            vendorHash = "sha256-1dhZHKvflnozc70GXonlkdrfESy7iPUOX84u1f5Xy+k=";
           };
         });
       
