@@ -9,6 +9,8 @@ type keymap struct {
 	stop        key.Binding
 	up          key.Binding
 	down        key.Binding
+	left        key.Binding
+	right       key.Binding
 	list        key.Binding
 	quit        key.Binding
 	selectTimer key.Binding

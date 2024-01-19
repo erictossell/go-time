@@ -2,10 +2,10 @@
 package stopwatch
 
 import (
+	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
 	"sync"
 	"time"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (
@@ -143,7 +143,10 @@ func (m Model) Elapsed() time.Duration {
 
 // View of the timer component.
 func (m Model) View() string {
-	return m.d.String()
+	hours := m.d / time.Hour
+	minutes := (m.d % time.Hour) / time.Minute
+	seconds := (m.d % time.Minute) / time.Second
+	return fmt.Sprintf("%02dh%02dm%02ds", hours, minutes, seconds)
 }
 
 func tick(id int, d time.Duration) tea.Cmd {

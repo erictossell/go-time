@@ -14,6 +14,8 @@ func initialModel(db *sql.DB) model {
 		stop:        key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "stop timer")),
 		up:          key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "up")),
 		down:        key.NewBinding(key.WithKeys("j"), key.WithHelp("j", "down")),
+		left:        key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "left")),
+		right:       key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "right")),
 		list:        key.NewBinding(key.WithKeys("v"), key.WithHelp("v", "views")),
 		quit:        key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 		selectTimer: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),

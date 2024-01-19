@@ -3,14 +3,11 @@ package tui
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
-	"strconv"
 )
 
 func (m model) topBarView() string {
 	view := "---------- Go-Time ---------- \n"
-	view += strconv.Itoa(m.cursor) + " " + strconv.Itoa(len(m.entries)) + "\n"
-	view += strconv.FormatBool(m.stopwatch.Running()) + "\n"
-	menuItems := []string{"entries", "timers"}
+	menuItems := []string{"entries", "timers", "timer"}
 	for _, item := range menuItems {
 		if m.currentView == item {
 			// Highlight the selected menu item. For example, using bold style.
@@ -70,9 +67,9 @@ func (m model) timersView() string {
 		if m.cursor == i {
 			cursor = ">" // cursor!
 		}
+
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Start: %s",
 			cursor, timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
-
 		view += line + "\n"
 
 	}
@@ -85,8 +82,8 @@ func (m model) timerView() string {
 	timer := m.timers[m.cursor]
 	line := fmt.Sprintf("ID: %d, Name: %s, Start: %s",
 		timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
-	view += m.stopwatch.View() + "\n"
 	view += line + "\n"
+	view += m.stopwatch.View() + "\n"
 
 	view += m.helpView()
 	return view

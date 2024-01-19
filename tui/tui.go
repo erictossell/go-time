@@ -55,17 +55,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keymap.down):
-			if m.cursor < len(m.entries)-1 {
+			if m.currentView == "entries" && m.cursor < len(m.entries)-1 {
 				m.cursor++
-
-				return m, nil
+			} else if m.currentView == "timers" && m.cursor < len(m.timers)-1 {
+				m.cursor++
 			}
-
+			return m, nil
 		case key.Matches(msg, m.keymap.selectTimer):
 			selectedTimer := m.timers[m.cursor]
 			cmd := m.startStopwatch(selectedTimer)
 			m.currentView = "timer"
 			return m, cmd
+		case key.Matches(msg, m.keymap.left):
 
 		case key.Matches(msg, m.keymap.list):
 			// Switch view
