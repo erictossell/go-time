@@ -24,9 +24,9 @@ func ListCmd(db *sql.DB) *cobra.Command {
 
 			switch listType {
 			case "entries":
-				listTimeEntries(ctx, db)
+				listEntries(ctx, db)
 			case "timers":
-				listActiveTimers(ctx, db)
+				listTimers(ctx, db)
 			default:
 				fmt.Println("Invalid argument. Please specify 'entries' or 'timers'.")
 			}
@@ -34,9 +34,9 @@ func ListCmd(db *sql.DB) *cobra.Command {
 	}
 }
 
-func listTimeEntries(ctx context.Context, db *sql.DB) {
+func listEntries(ctx context.Context, db *sql.DB) {
 
-	entries, err := godb.ListTimeEntries(ctx, db)
+	entries, err := godb.ListEntries(ctx, db)
 	if err != nil {
 		fmt.Println("Error listing time entries:", err)
 		return
@@ -46,13 +46,13 @@ func listTimeEntries(ctx context.Context, db *sql.DB) {
 	}
 }
 
-func listActiveTimers(ctx context.Context, db *sql.DB) {
+func listTimers(ctx context.Context, db *sql.DB) {
 	timers, err := godb.ListTimers(ctx, db) // Implement this function in your timer package
 	if err != nil {
 		fmt.Println("Error listing active timers:", err)
 		return
 	}
 	for _, t := range timers {
-		fmt.Printf("Task: %s, Started at: %v\n", t.TaskName, t.StartTime.Format(time.RFC3339))
+		fmt.Printf("%s, Started at: %v\n", t.TaskName, t.StartTime.Format(time.RFC3339))
 	}
 }

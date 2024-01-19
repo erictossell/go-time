@@ -3,7 +3,7 @@ package db
 import "time"
 
 // TimeEntry represents a record of time spent on a task.
-type TimeEntry struct {
+type Entry struct {
 	ID          int       `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`

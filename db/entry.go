@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func EditTimeEntry(ctx context.Context, db *sql.DB, id int, name, description string) error {
+func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
@@ -26,7 +26,7 @@ func EditTimeEntry(ctx context.Context, db *sql.DB, id int, name, description st
 	}()
 
 	// Prepare the SQL statement with context
-	statement, err := tx.PrepareContext(ctx, "UPDATE time_entries SET name = ?, description = ? WHERE id = ?")
+	statement, err := tx.PrepareContext(ctx, "UPDATE entries SET name = ?, description = ? WHERE id = ?")
 	if err != nil {
 		return fmt.Errorf("error preparing update statement: %w", err)
 	}
@@ -45,19 +45,19 @@ func EditTimeEntry(ctx context.Context, db *sql.DB, id int, name, description st
 	return nil
 }
 
-func ListTimeEntries(ctx context.Context, db *sql.DB) ([]TimeEntry, error) {
-	const query = "SELECT id, name, description, start_time, end_time FROM time_entries"
+func ListEntries(ctx context.Context, db *sql.DB) ([]Entry, error) {
+	const query = "SELECT id, name, description, start_time, end_time FROM entries"
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		// Log the error for debugging purposes
-		log.Printf("Error querying time entries: %v", err)
-		return nil, fmt.Errorf("error querying time entries: %w", err)
+		log.Printf("Error querying entries: %v", err)
+		return nil, fmt.Errorf("error querying entries: %w", err)
 	}
 	defer rows.Close()
 
-	var entries []TimeEntry
+	var entries []Entry
 	for rows.Next() {
-		var entry TimeEntry
+		var entry Entry
 		if err := rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.StartTime, &entry.EndTime); err != nil {
 			log.Printf("Error scanning time entry row: %v", err)
 			return nil, fmt.Errorf("error scanning time entry row: %w", err)
@@ -82,7 +82,7 @@ func SaveTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, st
 		return fmt.Errorf("end time cannot be before start time")
 	}
 
-	statement, err := tx.PrepareContext(ctx, "INSERT INTO time_entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)")
+	statement, err := tx.PrepareContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return fmt.Errorf("error preparing statement: %w", err)
 	}

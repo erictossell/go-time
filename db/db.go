@@ -24,7 +24,7 @@ func InitDB(dbFile string) (*sql.DB, error) {
 
 func createTables(db *sql.DB) error {
 	createTablesSQL := `
-	CREATE TABLE IF NOT EXISTS time_entries (
+	CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,

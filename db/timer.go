@@ -24,7 +24,7 @@ func IsTimerRunning(ctx context.Context, db *sql.DB, taskName string) (bool, err
 }
 
 func ListTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
-	query := "SELECT task_name, start_time FROM timer_state WHERE is_running = 1"
+	query := "SELECT id, task_name, start_time FROM timer_state WHERE is_running = 1"
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("error querying active timers: %w", err)
@@ -34,7 +34,7 @@ func ListTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
 	var timers []Timer
 	for rows.Next() {
 		var timer Timer
-		if err := rows.Scan(&timer.TaskName, &timer.StartTime); err != nil {
+		if err := rows.Scan(&timer.ID, &timer.TaskName, &timer.StartTime); err != nil {
 			return nil, fmt.Errorf("error scanning timer row: %w", err)
 		}
 		timers = append(timers, timer)
