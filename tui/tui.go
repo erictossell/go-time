@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	godb "go-time/db"
-
+	"go-time/stopwatch"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -28,12 +29,15 @@ type model struct {
 	currentView string
 	timeEntries []godb.TimeEntry
 	timers      []godb.Timer
+	stopwatches map[int]stopwatch.Model
 	keymap      keymap
 	help        help.Model
 	cursor      int
 	selected    map[int]struct{}
 	// ... other fields as needed
 }
+
+type UpdateViewMsg struct{}
 
 func initialModel(db *sql.DB) model {
 	keymap := keymap{
@@ -51,11 +55,14 @@ func initialModel(db *sql.DB) model {
 		keymap:      keymap,
 		help:        help.New(),
 		selected:    make(map[int]struct{}),
+		stopwatches: make(map[int]stopwatch.Model), // Initialize the stopwatches map here
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return nil // Return `nil`, which means "no I/O right now, please."
+	return tea.Every(time.Second, func(t time.Time) tea.Msg {
+		return UpdateViewMsg{} // Define UpdateViewMsg as an empty struct
+	})
 }
 
 func Main(db *sql.DB) {
@@ -76,6 +83,20 @@ func Main(db *sql.DB) {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case UpdateViewMsg:
+		// Refresh stopwatches and trigger a view update
+		var cmds []tea.Cmd
+		for id, sw := range m.stopwatches {
+			// If stopwatch is running, update it
+			if sw.Running() {
+				m.stopwatches[id], _ = sw.Update(stopwatch.TickMsg{ID: id})
+				cmds = append(cmds, tea.Tick(time.Second, func(time.Time) tea.Msg {
+					return stopwatch.TickMsg{ID: id}
+				}))
+			}
+		}
+		return m, tea.Batch(cmds...)
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		// The "up" and "k" keys move the cursor up
@@ -86,32 +107,41 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// The "down" and "j" keys move the cursor down
 		case "down", "j":
-			if m.cursor > len(m.timeEntries)-1 {
+			if m.cursor < len(m.timeEntries)-1 {
 				m.cursor++
 			}
-		case "enter", " ": // Edit selected entry
-			_, ok := m.selected[m.cursor]
-			if ok {
+
+		case "enter", " ":
+			// Toggle selection
+			if _, ok := m.selected[m.cursor]; ok {
 				delete(m.selected, m.cursor)
 			} else {
 				m.selected[m.cursor] = struct{}{}
 			}
 
 		case "v":
+			// Switch view
 			if m.currentView == "timeEntries" {
 				m.currentView = "activeTimers"
-				// Load active timers
 			} else {
 				m.currentView = "timeEntries"
-				// Load time entries
 			}
+
 		case "ctrl+c", "q":
+			// Quit application
 			return m, tea.Quit
+		}
+
+	case stopwatch.TickMsg:
+		// Update stopwatch
+		if stopwatch, ok := m.stopwatches[msg.ID]; ok {
+			updatedStopwatch, cmd := stopwatch.Update(msg)
+			m.stopwatches[msg.ID] = updatedStopwatch
+			return m, cmd
 		}
 	}
 	return m, nil
 }
-
 func (m model) View() string {
 	var s string
 	var err error
@@ -177,6 +207,13 @@ func (m model) activeTimersView() string {
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Start: %s",
 			cursor, timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
 
+		//view += line + "\n"
+
+		if stopwatch, ok := m.stopwatches[timer.ID]; ok {
+			elapsed := stopwatch.Elapsed()
+			line += fmt.Sprintf(" - Timer: %s", elapsed)
+		}
+
 		view += line + "\n"
 
 	}
@@ -238,5 +275,17 @@ func (m *model) updateTimers() error {
 		return err
 	}
 	m.timers = timers
+	for _, timer := range m.timers {
+		startTime := timer.StartTime // Assuming this is the time when the timer started
+		currentTime := time.Now()
+		elapsed := currentTime.Sub(startTime) // Calculate elapsed time
+
+		if m.stopwatches == nil {
+			m.stopwatches = make(map[int]stopwatch.Model)
+		}
+
+		// Initialize stopwatch with the elapsed time
+		m.stopwatches[timer.ID] = stopwatch.NewWithInterval(elapsed, time.Second)
+	}
 	return nil
 }
