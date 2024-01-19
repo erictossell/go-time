@@ -8,18 +8,18 @@ import (
 	"log"
 )
 
-// StartCmd creates a new start command.
 func StartCmd(db *sql.DB) *cobra.Command {
 	return &cobra.Command{
-		Use:   "start [task name]",
-		Short: "Start a new timer",
-		Args:  cobra.MinimumNArgs(1),
+		Use:   "start [task name] [tags]",
+		Short: "Start a new timer with optional tags",
+		Args:  cobra.MinimumNArgs(1), // At least the task name is required
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 			taskName := args[0]
-			if err := godb.CreateTimer(ctx, db, taskName); err != nil {
+			tags := args[1:] // Remaining arguments are considered as tags
+
+			if err := godb.CreateTimer(ctx, db, taskName, tags); err != nil {
 				log.Printf("error starting timer: %v", err)
-				// Handle the error appropriately
 			}
 		},
 	}

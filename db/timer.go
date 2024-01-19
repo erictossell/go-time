@@ -12,6 +12,7 @@ type Timer struct {
 	ID        int
 	TaskName  string
 	StartTime time.Time
+	Tags      []string
 }
 
 func IsTimerRunning(ctx context.Context, db *sql.DB, taskName string) (bool, error) {
@@ -45,7 +46,7 @@ func ReadTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
 	return timers, nil
 }
 
-func CreateTimer(ctx context.Context, db *sql.DB, taskName string) error {
+func CreateTimer(ctx context.Context, db *sql.DB, taskName string, tags []string) error {
 	isRunning, err := IsTimerRunning(ctx, db, taskName)
 	if err != nil {
 		return fmt.Errorf("error checking if timer is running: %w", err)
@@ -62,7 +63,7 @@ func CreateTimer(ctx context.Context, db *sql.DB, taskName string) error {
 	return nil
 }
 
-func StopTimer(ctx context.Context, db *sql.DB, taskName, description string) error {
+func StopTimer(ctx context.Context, db *sql.DB, taskName, description string, tags []string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
@@ -81,7 +82,7 @@ func StopTimer(ctx context.Context, db *sql.DB, taskName, description string) er
 	}
 
 	endTime := time.Now()
-	if err = InsertTimeEntry(ctx, tx, taskName, description, startTime, endTime); err != nil {
+	if err = InsertTimeEntry(ctx, tx, taskName, description, startTime, endTime, tags); err != nil {
 		return fmt.Errorf("error saving time entry: %w", err)
 	}
 

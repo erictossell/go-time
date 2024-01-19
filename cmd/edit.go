@@ -24,8 +24,9 @@ func EditCmd(db *sql.DB) *cobra.Command {
 			}
 			name := args[1]
 			description := args[2]
+			tags := args[3:] // Remaining arguments are considered as tags
 
-			err = godb.EditEntry(ctx, db, id, name, description)
+			err = godb.EditEntry(ctx, db, id, name, description, tags)
 			if err != nil {
 				fmt.Println("Error editing time entry:", err)
 				return

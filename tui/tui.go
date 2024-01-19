@@ -66,7 +66,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Handle the completed form data
 			// e.g., m.form.GetString("name"), m.form.GetString("description"), etc.
 			name := m.form.GetString("name")
-			err := godb.CreateTimer(context.Background(), m.db, name)
+			tags := m.form.GetString("tags")
+			err := godb.CreateTimer(context.Background(), m.db, name, tags)
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}

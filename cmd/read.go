@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	godb "go-time/db"
+	"strings"
 	"time"
 )
 
@@ -41,19 +42,50 @@ func readEntries(ctx context.Context, db *sql.DB) {
 		return
 	}
 
+	// Additional function to get tags for each entry
+	getTagsForEntry := func(entryID int) ([]string, error) {
+		var tags []string
+		query := `
+        SELECT t.name
+        FROM tags t
+        INNER JOIN entry_tags et ON t.id = et.tag_id
+        WHERE et.entry_id = ?`
+		rows, err := db.Query(query, entryID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var tagName string
+			if err := rows.Scan(&tagName); err != nil {
+				return nil, err
+			}
+			tags = append(tags, tagName)
+		}
+		return tags, nil
+	}
+
 	// Determine the width of each column
-	idWidth := 4    // Adjust as needed
-	nameWidth := 20 // Adjust based on your longest name
-	descWidth := 30 // Adjust based on your longest description
-	timeWidth := 25 // Adjust to fit the length of the formatted time
+	idWidth := 4
+	nameWidth := 20
+	descWidth := 30
+	timeWidth := 25
+	tagsWidth := 20 // Adjust based on expected tag length
 
-	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth)
-	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth)
+	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth, tagsWidth)
+	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth, tagsWidth)
 
-	fmt.Printf(headerFormat, "ID", "Name", "Description", "Start Time", "End Time")
+	fmt.Printf(headerFormat, "ID", "Name", "Description", "Start Time", "End Time", "Tags")
 
 	for _, entry := range entries {
-		fmt.Printf(rowFormat, entry.ID, entry.Name, entry.Description, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339))
+		tags, err := getTagsForEntry(entry.ID)
+		if err != nil {
+			fmt.Println("Error fetching tags for entry:", err)
+			continue
+		}
+		tagStr := strings.Join(tags, ", ")
+		fmt.Printf(rowFormat, entry.ID, entry.Name, entry.Description, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339), tagStr)
 	}
 }
 

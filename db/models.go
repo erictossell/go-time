@@ -9,6 +9,7 @@ type Entry struct {
 	Description string    `json:"description"`
 	StartTime   time.Time `json:"start_time"`
 	EndTime     time.Time `json:"end_time"`
+	Tags        []Tag     `json:"tags"`
 }
 
 // TimerState represents the current state of a timer.
@@ -17,4 +18,9 @@ type TimerState struct {
 	IsRunning bool      `json:"is_running"`
 	TaskName  string    `json:"task_name"`
 	StartTime time.Time `json:"start_time"`
+}
+
+type Tag struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }

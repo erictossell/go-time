@@ -8,21 +8,20 @@ import (
 	"log"
 )
 
-// StartCmd creates a new start command.
 func StopCmd(db *sql.DB) *cobra.Command {
 	return &cobra.Command{
-		Use:   "stop [task name]",
-		Short: "Stop a the current timer",
+		Use:   "stop [task name] [tags]",
+		Short: "Stop the current timer and add tags",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 			taskName := args[0]
-			description := ""
-			if err := godb.StopTimer(ctx, db, taskName, description); err != nil {
-				log.Printf("error stopping timer: %v", err)
-				// Handle the error appropriately
-			}
+			tags := args[1:]  // Remaining arguments are considered as tags
+			description := "" // Update or handle this as per your requirement
 
+			if err := godb.StopTimer(ctx, db, taskName, description, tags); err != nil {
+				log.Printf("error stopping timer: %v", err)
+			}
 		},
 	}
 }

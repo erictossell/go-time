@@ -38,7 +38,7 @@ func ReadEntries(ctx context.Context, db *sql.DB) ([]Entry, error) {
 	return entries, nil
 }
 
-func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, start, end time.Time) error {
+func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, start, end time.Time, tags []string) error {
 	// Input validation
 	if name == "" {
 		return fmt.Errorf("name cannot be empty")
@@ -47,25 +47,48 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, 
 		return fmt.Errorf("end time cannot be before start time")
 	}
 
-	statement, err := tx.PrepareContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)")
+	// Insert entry
+	res, err := tx.ExecContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)", name, description, start, end)
 	if err != nil {
-		return fmt.Errorf("error preparing statement: %w", err)
-	}
-	defer statement.Close()
-
-	if _, err = statement.ExecContext(ctx, name, description, start, end); err != nil {
 		return fmt.Errorf("error executing statement: %w", err)
+	}
+
+	// Get the last inserted ID
+	entryID, err := res.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("error getting last insert ID: %w", err)
+	}
+
+	// Insert and link tags
+	for _, tag := range tags {
+		// Insert tag, ignore if exists
+		_, err = tx.ExecContext(ctx, "INSERT OR IGNORE INTO tags (name) VALUES (?)", tag)
+		if err != nil {
+			return fmt.Errorf("error inserting tag: %w", err)
+		}
+
+		// Get tag ID
+		var tagID int
+		err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
+		if err != nil {
+			return fmt.Errorf("error getting tag ID: %w", err)
+		}
+
+		// Link tag with entry
+		_, err = tx.ExecContext(ctx, "INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)", entryID, tagID)
+		if err != nil {
+			return fmt.Errorf("error linking tag with entry: %w", err)
+		}
 	}
 
 	return nil
 }
 
-func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string) error {
+func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string, tags []string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
-
 	// Defer a rollback in case of error
 	defer func() {
 		if err != nil {
@@ -74,20 +97,39 @@ func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string
 			}
 		}
 	}()
-
-	// Prepare the SQL statement with context
-	statement, err := tx.PrepareContext(ctx, "UPDATE entries SET name = ?, description = ? WHERE id = ?")
-	if err != nil {
-		return fmt.Errorf("error preparing update statement: %w", err)
-	}
-	defer statement.Close()
-
-	// Execute the statement with context
-	if _, err = statement.ExecContext(ctx, name, description, id); err != nil {
+	// Update entry
+	if _, err = tx.ExecContext(ctx, "UPDATE entries SET name = ?, description = ? WHERE id = ?", name, description, id); err != nil {
 		return fmt.Errorf("error executing update statement: %w", err)
 	}
 
-	// Commit the transaction
+	// Delete existing tags associations
+	if _, err = tx.ExecContext(ctx, "DELETE FROM entry_tags WHERE entry_id = ?", id); err != nil {
+		return fmt.Errorf("error deleting existing tags: %w", err)
+	}
+
+	// Insert and link new tags
+	for _, tag := range tags {
+		// Insert tag, ignore if exists
+		_, err = tx.ExecContext(ctx, "INSERT OR IGNORE INTO tags (name) VALUES (?)", tag)
+		if err != nil {
+			return fmt.Errorf("error inserting tag: %w", err)
+		}
+
+		// Get tag ID
+		var tagID int
+		err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
+		if err != nil {
+			return fmt.Errorf("error getting tag ID: %w", err)
+		}
+
+		// Link tag with entry
+		_, err = tx.ExecContext(ctx, "INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)", id, tagID)
+		if err != nil {
+			return fmt.Errorf("error linking tag with entry: %w", err)
+		}
+	}
+
+	// Commit transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
