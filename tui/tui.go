@@ -44,8 +44,16 @@ func Main(db *sql.DB) {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	m.updateTimers()
-	m.updateEntries()
+	err := m.updateTimers()
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	err = m.updateEntries()
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {

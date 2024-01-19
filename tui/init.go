@@ -30,7 +30,13 @@ func initialModel(db *sql.DB) model {
 }
 
 func (m model) Init() tea.Cmd {
-	m.updateTimers()
-	m.updateEntries()
+	err := m.updateTimers()
+	if err != nil {
+		return tea.Quit
+	}
+	err = m.updateEntries()
+	if err != nil {
+		return tea.Quit
+	}
 	return m.stopwatch.Init()
 }
