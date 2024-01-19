@@ -67,7 +67,7 @@ func (m model) timersView() string {
 		}
 
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Start: %s",
-			cursor, timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
+			cursor, timer.ID, timer.Name, timer.StartTime.Format("2006-01-02 15:04:05"))
 		view += line + "\n"
 
 	}
@@ -79,7 +79,7 @@ func (m model) timerView() string {
 	view := m.topBarView()
 	timer := m.timers[m.timersCursor]
 	line := fmt.Sprintf("ID: %d, Name: %s, Start: %s",
-		timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
+		timer.ID, timer.Name, timer.StartTime.Format("2006-01-02 15:04:05"))
 	view += line + "\n"
 	view += m.stopwatch.View() + "\n"
 

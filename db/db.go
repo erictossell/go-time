@@ -39,7 +39,6 @@ func createTables(db *sql.DB) error {
     );
     CREATE TABLE IF NOT EXISTS tags (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	createTablesSQL +=
 	name TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS entry_tags (
@@ -48,6 +47,13 @@ func createTables(db *sql.DB) error {
 	    FOREIGN KEY (entry_id) REFERENCES entries(id),
 	    FOREIGN KEY (tag_id) REFERENCES tags(id)
 	    PRIMARY KEY (entry_id, tag_id)
+    );
+    CREATE TABLE IF NOT EXISTS timer_tags (
+    	timer_id INTEGER NOT NULL,
+    	tag_id INTEGER NOT NULL,
+    	PRIMARY KEY (timer_id, tag_id),
+    	FOREIGN KEY (timer_id) REFERENCES timer_state(id) ON DELETE CASCADE,
+    	FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
     );
 	`
 	_, err := db.Exec(createTablesSQL)

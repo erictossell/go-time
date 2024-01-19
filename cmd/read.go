@@ -90,23 +90,55 @@ func readEntries(ctx context.Context, db *sql.DB) {
 }
 
 func readTimers(ctx context.Context, db *sql.DB) {
-	timers, err := godb.ReadTimers(ctx, db) // Implement this function in your timer package
+	timers, err := godb.ReadTimers(ctx, db)
 	if err != nil {
-		fmt.Println("Error listing active timers:", err)
+		fmt.Println("Error listing time entries:", err)
 		return
 	}
 
+	// Additional function to get tags for each entry
+	getTagsForTimer := func(timerID int) ([]string, error) {
+		var tags []string
+		query := `
+        SELECT t.name
+        FROM tags t
+        INNER JOIN timer_tags tt ON t.id = tt.tag_id
+        WHERE tt.timer_id = ?`
+		rows, err := db.Query(query, timerID)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var tagName string
+			if err := rows.Scan(&tagName); err != nil {
+				return nil, err
+			}
+			tags = append(tags, tagName)
+		}
+		return tags, nil
+	}
+
 	// Determine the width of each column
-	idWidth := 4    // Adjust as needed
-	timeWidth := 25 // Adjust to fit the length of the formatted time
-	nameWidth := 30 // Adjust based on your longest task name
+	idWidth := 4
+	nameWidth := 20
 
-	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds\n", idWidth, timeWidth, nameWidth)
-	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds\n", idWidth, timeWidth, nameWidth)
+	timeWidth := 25
+	tagsWidth := 20 // Adjust based on expected tag length
 
-	fmt.Printf(headerFormat, "ID", "Start Time", "Task Name")
+	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds \n", idWidth, nameWidth, timeWidth, tagsWidth)
+	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds \n", idWidth, nameWidth, timeWidth, tagsWidth)
 
-	for _, t := range timers {
-		fmt.Printf(rowFormat, t.ID, t.StartTime.Format(time.RFC3339), t.TaskName)
+	fmt.Printf(headerFormat, "ID", "Name", "Start Time", "Tags")
+
+	for _, timer := range timers {
+		tags, err := getTagsForTimer(timer.ID)
+		if err != nil {
+			fmt.Println("Error fetching tags for entry:", err)
+			continue
+		}
+		tagStr := strings.Join(tags, ", ")
+		fmt.Printf(rowFormat, timer.ID, timer.Name, timer.StartTime.Format(time.RFC3339), tagStr)
 	}
 }

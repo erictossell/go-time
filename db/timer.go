@@ -10,7 +10,7 @@ import (
 
 type Timer struct {
 	ID        int
-	TaskName  string
+	Name      string
 	StartTime time.Time
 	Tags      []string
 }
@@ -35,7 +35,7 @@ func ReadTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
 	var timers []Timer
 	for rows.Next() {
 		var timer Timer
-		if err := rows.Scan(&timer.ID, &timer.TaskName, &timer.StartTime); err != nil {
+		if err := rows.Scan(&timer.ID, &timer.Name, &timer.StartTime); err != nil {
 			return nil, fmt.Errorf("error scanning timer row: %w", err)
 		}
 		timers = append(timers, timer)
@@ -56,14 +56,41 @@ func CreateTimer(ctx context.Context, db *sql.DB, taskName string, tags []string
 	}
 
 	startTime := time.Now()
-	_, err = db.ExecContext(ctx, "INSERT INTO timer_state (is_running, task_name, start_time) VALUES (?, ?, ?)", true, taskName, startTime)
+	res, err := db.ExecContext(ctx, "INSERT INTO timer_state (is_running, task_name, start_time) VALUES (?, ?, ?)", true, taskName, startTime)
 	if err != nil {
 		return fmt.Errorf("error starting timer: %w", err)
 	}
+
+	timerID, err := res.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("error getting last insert ID: %w", err)
+	}
+
+	for _, tag := range tags {
+		var tagID int
+		// Insert tag, ignore if exists
+		_, err = db.ExecContext(ctx, "INSERT OR IGNORE INTO tags (name) VALUES (?)", tag)
+		if err != nil {
+			return fmt.Errorf("error inserting tag: %w", err)
+		}
+
+		// Get tag ID
+		err = db.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
+		if err != nil {
+			return fmt.Errorf("error getting tag ID: %w", err)
+		}
+
+		// Link tag with timer
+		_, err = db.ExecContext(ctx, "INSERT INTO timer_tags (timer_id, tag_id) VALUES (?, ?)", timerID, tagID)
+		if err != nil {
+			return fmt.Errorf("error linking tag with timer: %w", err)
+		}
+	}
+
 	return nil
 }
 
-func StopTimer(ctx context.Context, db *sql.DB, taskName, description string, tags []string) error {
+func StopTimer(ctx context.Context, db *sql.DB, taskName string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
@@ -76,13 +103,20 @@ func StopTimer(ctx context.Context, db *sql.DB, taskName, description string, ta
 	}()
 
 	var startTime time.Time
-	err = tx.QueryRowContext(ctx, "SELECT start_time FROM timer_state WHERE is_running = 1 AND task_name = ?", taskName).Scan(&startTime)
+	var timerID int
+	err = tx.QueryRowContext(ctx, "SELECT id, start_time FROM timer_state WHERE is_running = 1 AND task_name = ?", taskName).Scan(&timerID, &startTime)
 	if err != nil {
 		return fmt.Errorf("error fetching running timer: %w", err)
 	}
 
+	// Fetch tags associated with the timer
+	tags, err := fetchTagsForTimer(ctx, tx, timerID)
+	if err != nil {
+		return fmt.Errorf("error fetching tags for timer: %w", err)
+	}
+
 	endTime := time.Now()
-	if err = InsertTimeEntry(ctx, tx, taskName, description, startTime, endTime, tags); err != nil {
+	if err = InsertTimeEntry(ctx, tx, taskName, startTime, endTime, tags); err != nil {
 		return fmt.Errorf("error saving time entry: %w", err)
 	}
 
@@ -95,4 +129,33 @@ func StopTimer(ctx context.Context, db *sql.DB, taskName, description string, ta
 	}
 
 	return nil
+}
+
+func fetchTagsForTimer(ctx context.Context, tx *sql.Tx, timerID int) ([]string, error) {
+	var tags []string
+	query := `
+    SELECT t.name 
+    FROM tags t 
+    INNER JOIN timer_tags tt ON t.id = tt.tag_id 
+    WHERE tt.timer_id = ?`
+
+	rows, err := tx.QueryContext(ctx, query, timerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var tag string
+		if err := rows.Scan(&tag); err != nil {
+			return nil, err
+		}
+		tags = append(tags, tag)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return tags, nil
 }

@@ -16,10 +16,8 @@ func StopCmd(db *sql.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 			taskName := args[0]
-			tags := args[1:]  // Remaining arguments are considered as tags
-			description := "" // Update or handle this as per your requirement
 
-			if err := godb.StopTimer(ctx, db, taskName, description, tags); err != nil {
+			if err := godb.StopTimer(ctx, db, taskName); err != nil {
 				log.Printf("error stopping timer: %v", err)
 			}
 		},

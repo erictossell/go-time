@@ -38,7 +38,7 @@ func ReadEntries(ctx context.Context, db *sql.DB) ([]Entry, error) {
 	return entries, nil
 }
 
-func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, start, end time.Time, tags []string) error {
+func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end time.Time, tags []string) error {
 	// Input validation
 	if name == "" {
 		return fmt.Errorf("name cannot be empty")
@@ -48,7 +48,7 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name, description string, 
 	}
 
 	// Insert entry
-	res, err := tx.ExecContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)", name, description, start, end)
+	res, err := tx.ExecContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)", name, start, end)
 	if err != nil {
 		return fmt.Errorf("error executing statement: %w", err)
 	}
