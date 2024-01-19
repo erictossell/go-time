@@ -9,6 +9,7 @@ import (
 func (m model) topBarView() string {
 	view := "---------- Go-Time ---------- \n"
 	view += strconv.Itoa(m.cursor) + " " + strconv.Itoa(len(m.entries)) + "\n"
+	view += strconv.FormatBool(m.stopwatch.Running()) + "\n"
 	menuItems := []string{"entries", "timers"}
 	for _, item := range menuItems {
 		if m.currentView == item {
@@ -75,6 +76,18 @@ func (m model) timersView() string {
 		view += line + "\n"
 
 	}
+	view += m.helpView()
+	return view
+}
+
+func (m model) timerView() string {
+	view := m.topBarView()
+	timer := m.timers[m.cursor]
+	line := fmt.Sprintf("ID: %d, Name: %s, Start: %s",
+		timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
+	view += m.stopwatch.View() + "\n"
+	view += line + "\n"
+
 	view += m.helpView()
 	return view
 }

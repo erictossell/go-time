@@ -151,3 +151,8 @@ func tick(id int, d time.Duration) tea.Cmd {
 		return TickMsg{ID: id}
 	})
 }
+
+func (m Model) SetElapsedTime(d time.Duration) Model {
+	m.d = d
+	return m
+}
