@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	godb "go-time/db"
 	"go-time/stopwatch"
 	"os"
@@ -23,6 +24,9 @@ type model struct {
 	entriesCursor int
 	timersCursor  int
 	stopwatch     stopwatch.Model
+
+	form       *huh.Form
+	formActive bool
 }
 
 func Main(db *sql.DB) {
@@ -51,7 +55,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
+	if m.formActive {
+		var cmd tea.Cmd
+		updatedForm, cmd := m.form.Update(msg)
+		if updatedForm, ok := updatedForm.(*huh.Form); ok {
+			m.form = updatedForm
+		}
+		// Check if the form has been completed
+		if m.form.State == huh.StateCompleted {
+			// Handle the completed form data
+			// e.g., m.form.GetString("name"), m.form.GetString("description"), etc.
+			name := m.form.GetString("name")
+			err := godb.CreateTimer(context.Background(), m.db, name)
+			if err != nil {
+				fmt.Println("Error: ", err)
+			}
+			// Reset or deactivate the form
+			m.form = addEntryForm()
+			m.formActive = false
 
+			// Return to the main view or whatever your logic requires
+			m.currentView = "timers" // Adjust as needed
+		}
+
+		return m, cmd
+	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -68,11 +96,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else if m.currentView == "timers" && m.timersCursor < len(m.timers)-1 {
 				m.timersCursor++
 			}
-		case key.Matches(msg, m.keymap.selectTimer):
-			selectedTimer := m.timers[m.timersCursor]
-			cmd := m.startStopwatch(selectedTimer)
-			m.currentView = "timer"
-			return m, cmd
+
+		case key.Matches(msg, m.keymap.selectItem):
+			switch m.currentView {
+			case "entries":
+				m.form = editEntryForm()
+				m.formActive = true
+			case "timers":
+				m.form = addEntryForm()
+				m.formActive = true
+			}
+			return m, nil
 
 		case key.Matches(msg, m.keymap.left):
 			m.navigateMenu(-1)
@@ -102,6 +136,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	var s string
 	var err error
+	if m.formActive {
+		return m.form.View()
+	}
 	switch m.currentView {
 	case "entries":
 		err = m.updateEntries()
@@ -120,6 +157,7 @@ func (m model) View() string {
 	case "timer":
 		s += m.timerView()
 	}
+
 	return s
 }
 

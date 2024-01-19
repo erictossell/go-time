@@ -45,7 +45,7 @@ func ReadTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
 	return timers, nil
 }
 
-func StartTimer(ctx context.Context, db *sql.DB, taskName string) error {
+func CreateTimer(ctx context.Context, db *sql.DB, taskName string) error {
 	isRunning, err := IsTimerRunning(ctx, db, taskName)
 	if err != nil {
 		return fmt.Errorf("error checking if timer is running: %w", err)

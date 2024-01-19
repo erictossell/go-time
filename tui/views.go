@@ -21,10 +21,9 @@ func (m model) topBarView() string {
 
 func (m model) helpView() string {
 	return "\n" + m.help.ShortHelpView([]key.Binding{
-		m.keymap.start,
-		m.keymap.stop,
 		m.keymap.up,
 		m.keymap.down,
+		m.keymap.selectItem,
 		m.keymap.quit,
 	})
 }

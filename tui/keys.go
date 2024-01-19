@@ -5,12 +5,12 @@ import (
 )
 
 type keymap struct {
-	start       key.Binding
-	stop        key.Binding
-	up          key.Binding
-	down        key.Binding
-	left        key.Binding
-	right       key.Binding
-	quit        key.Binding
-	selectTimer key.Binding
+	start      key.Binding
+	stop       key.Binding
+	up         key.Binding
+	down       key.Binding
+	left       key.Binding
+	right      key.Binding
+	quit       key.Binding
+	selectItem key.Binding
 }

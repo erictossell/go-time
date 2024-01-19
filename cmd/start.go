@@ -17,7 +17,7 @@ func StartCmd(db *sql.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 			taskName := args[0]
-			if err := godb.StartTimer(ctx, db, taskName); err != nil {
+			if err := godb.CreateTimer(ctx, db, taskName); err != nil {
 				log.Printf("error starting timer: %v", err)
 				// Handle the error appropriately
 			}

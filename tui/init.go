@@ -17,14 +17,16 @@ func initialModel(db *sql.DB) model {
 		left:  key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "left")),
 		right: key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "right")),
 
-		quit:        key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
-		selectTimer: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
+		quit:       key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
+		selectItem: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
 	}
 	return model{
 		db:          db,
 		currentView: "timers",
 		keymap:      keymap,
 		help:        help.New(),
+		form:        addEntryForm(), // assuming setupForm returns a *huh.Form
+		formActive:  false,
 	}
 }
 
