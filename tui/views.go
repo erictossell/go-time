@@ -25,7 +25,6 @@ func (m model) helpView() string {
 		m.keymap.stop,
 		m.keymap.up,
 		m.keymap.down,
-		m.keymap.list,
 		m.keymap.quit,
 	})
 }
@@ -79,7 +78,7 @@ func (m model) timersView() string {
 
 func (m model) timerView() string {
 	view := m.topBarView()
-	timer := m.timers[m.cursor]
+	timer := m.timers[m.timersCursor]
 	line := fmt.Sprintf("ID: %d, Name: %s, Start: %s",
 		timer.ID, timer.TaskName, timer.StartTime.Format("2006-01-02 15:04:05"))
 	view += line + "\n"

@@ -11,7 +11,6 @@ type keymap struct {
 	down        key.Binding
 	left        key.Binding
 	right       key.Binding
-	list        key.Binding
 	quit        key.Binding
 	selectTimer key.Binding
 }

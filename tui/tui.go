@@ -20,7 +20,6 @@ type model struct {
 	timers        []godb.Timer
 	keymap        keymap
 	help          help.Model
-	cursor        int
 	entriesCursor int
 	timersCursor  int
 	stopwatch     stopwatch.Model
