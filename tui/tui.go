@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	godb "go-time/db"
@@ -222,7 +223,8 @@ func (m model) helpView() string {
 }
 
 func (m *model) updateTimeEntries() error {
-	entries, err := godb.ListTimeEntries(m.db)
+	ctx := context.Background()
+	entries, err := godb.ListTimeEntries(ctx, m.db)
 	if err != nil {
 		return err
 	}
@@ -230,7 +232,8 @@ func (m *model) updateTimeEntries() error {
 	return nil
 }
 func (m *model) updateTimers() error {
-	timers, err := godb.ListTimers(m.db)
+	ctx := context.Background()
+	timers, err := godb.ListTimers(ctx, m.db)
 	if err != nil {
 		return err
 	}

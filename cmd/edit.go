@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ func EditCmd(db *sql.DB) *cobra.Command {
 		Short: "Edit an existing time entry",
 		Args:  cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx := context.Background()
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				fmt.Println("Invalid ID:", err)
@@ -23,7 +25,7 @@ func EditCmd(db *sql.DB) *cobra.Command {
 			name := args[1]
 			description := args[2]
 
-			err = godb.EditTimeEntry(db, id, name, description)
+			err = godb.EditTimeEntry(ctx, db, id, name, description)
 			if err != nil {
 				fmt.Println("Error editing time entry:", err)
 				return

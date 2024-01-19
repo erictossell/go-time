@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -15,6 +16,7 @@ func ListCmd(db *sql.DB) *cobra.Command {
 		Long:  `List command is used to list all active timers or time entries. If no argument is provided, it defaults to listing timers.`,
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx := context.Background()
 			listType := "timers"
 			if len(args) > 0 {
 				listType = args[0]
@@ -22,9 +24,9 @@ func ListCmd(db *sql.DB) *cobra.Command {
 
 			switch listType {
 			case "entries":
-				listTimeEntries(db)
+				listTimeEntries(ctx, db)
 			case "timers":
-				listActiveTimers(db)
+				listActiveTimers(ctx, db)
 			default:
 				fmt.Println("Invalid argument. Please specify 'entries' or 'timers'.")
 			}
@@ -32,8 +34,9 @@ func ListCmd(db *sql.DB) *cobra.Command {
 	}
 }
 
-func listTimeEntries(db *sql.DB) {
-	entries, err := godb.ListTimeEntries(db)
+func listTimeEntries(ctx context.Context, db *sql.DB) {
+
+	entries, err := godb.ListTimeEntries(ctx, db)
 	if err != nil {
 		fmt.Println("Error listing time entries:", err)
 		return
@@ -43,8 +46,8 @@ func listTimeEntries(db *sql.DB) {
 	}
 }
 
-func listActiveTimers(db *sql.DB) {
-	timers, err := godb.ListTimers(db) // Implement this function in your timer package
+func listActiveTimers(ctx context.Context, db *sql.DB) {
+	timers, err := godb.ListTimers(ctx, db) // Implement this function in your timer package
 	if err != nil {
 		fmt.Println("Error listing active timers:", err)
 		return
