@@ -41,7 +41,7 @@ func (m model) entriesView() string {
 
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
-		if m.cursor == i {
+		if m.entriesCursor == i {
 			cursor = ">" // cursor!
 		}
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Description: %s, Start: %s, End: %s",
@@ -64,7 +64,7 @@ func (m model) timersView() string {
 	for i, timer := range m.timers {
 		// Is the cursor pointing at this choice?
 		cursor := " " // no cursor
-		if m.cursor == i {
+		if m.timersCursor == i {
 			cursor = ">" // cursor!
 		}
 
