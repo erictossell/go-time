@@ -30,7 +30,7 @@ func main() {
 	defer database.Close()
 
 	var rootCmd = &cobra.Command{Use: "go-time"}
-	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ListCmd(database), cmd.TuiCmd(database))
+	rootCmd.AddCommand(cmd.StartCmd(database), cmd.StopCmd(database), cmd.EditCmd(database), cmd.ReadCmd(database), cmd.TuiCmd(database), cmd.DelCmd(database))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error executing command:", err)

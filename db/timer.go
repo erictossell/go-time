@@ -23,7 +23,7 @@ func IsTimerRunning(ctx context.Context, db *sql.DB, taskName string) (bool, err
 	return count > 0, nil
 }
 
-func ListTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
+func ReadTimers(ctx context.Context, db *sql.DB) ([]Timer, error) {
 	query := "SELECT id, task_name, start_time FROM timer_state WHERE is_running = 1"
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
@@ -81,7 +81,7 @@ func StopTimer(ctx context.Context, db *sql.DB, taskName, description string) er
 	}
 
 	endTime := time.Now()
-	if err = SaveTimeEntry(ctx, tx, taskName, description, startTime, endTime); err != nil {
+	if err = InsertTimeEntry(ctx, tx, taskName, description, startTime, endTime); err != nil {
 		return fmt.Errorf("error saving time entry: %w", err)
 	}
 

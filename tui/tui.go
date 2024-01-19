@@ -23,7 +23,6 @@ type model struct {
 	entriesCursor int
 	timersCursor  int
 	stopwatch     stopwatch.Model
-	// ... other fields as needed
 }
 
 func Main(db *sql.DB) {
@@ -76,12 +75,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 
 		case key.Matches(msg, m.keymap.left):
-			// Navigate to the previous menu item
 			m.navigateMenu(-1)
 			return m, nil
 
 		case key.Matches(msg, m.keymap.right):
-			// Navigate to the next menu item
 			m.navigateMenu(1)
 			if m.currentView == "timer" {
 				selectedTimer := m.timers[m.timersCursor]
@@ -128,7 +125,7 @@ func (m model) View() string {
 
 func (m *model) updateEntries() error {
 	ctx := context.Background()
-	entries, err := godb.ListEntries(ctx, m.db)
+	entries, err := godb.ReadEntries(ctx, m.db)
 	if err != nil {
 		return err
 	}
@@ -138,7 +135,7 @@ func (m *model) updateEntries() error {
 
 func (m *model) updateTimers() error {
 	ctx := context.Background()
-	timers, err := godb.ListTimers(ctx, m.db)
+	timers, err := godb.ReadTimers(ctx, m.db)
 	if err != nil {
 		return err
 	}
