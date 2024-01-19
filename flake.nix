@@ -34,7 +34,7 @@
             pname = "go-time";
             inherit version;
             src = ./.;
-            vendorHash = "sha256-1dhZHKvflnozc70GXonlkdrfESy7iPUOX84u1f5Xy+k=";
+            vendorHash = null;
           };
           default = self.packages.${system}.go-time;
         });
