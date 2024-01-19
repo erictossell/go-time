@@ -69,15 +69,15 @@ func readEntries(ctx context.Context, db *sql.DB) {
 	// Determine the width of each column
 	idWidth := 4
 	nameWidth := 20
-	descWidth := 30
+
 	timeWidth := 25
 	tagsWidth := 20 // Adjust based on expected tag length
 
-	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth, tagsWidth)
-	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, descWidth, timeWidth, timeWidth, tagsWidth)
+	// Adjusted format strings
+	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, timeWidth, timeWidth, tagsWidth)
+	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, timeWidth, timeWidth, tagsWidth)
 
-	fmt.Printf(headerFormat, "ID", "Name", "Description", "Start Time", "End Time", "Tags")
-
+	fmt.Printf(headerFormat, "ID", "Name", "Start Time", "End Time", "Tags")
 	for _, entry := range entries {
 		tags, err := getTagsForEntry(entry.ID)
 		if err != nil {
@@ -85,7 +85,7 @@ func readEntries(ctx context.Context, db *sql.DB) {
 			continue
 		}
 		tagStr := strings.Join(tags, ", ")
-		fmt.Printf(rowFormat, entry.ID, entry.Name, entry.Description, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339), tagStr)
+		fmt.Printf(rowFormat, entry.ID, entry.Name, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339), tagStr)
 	}
 }
 

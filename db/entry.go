@@ -48,19 +48,20 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end ti
 	}
 
 	// Insert entry
-	res, err := tx.ExecContext(ctx, "INSERT INTO entries (name, description, start_time, end_time) VALUES (?, ?, ?, ?)", name, start, end)
+	res, err := tx.ExecContext(ctx, "INSERT INTO entries (name,  start_time, end_time) VALUES (?, ?, ?)", name, start, end)
 	if err != nil {
 		return fmt.Errorf("error executing statement: %w", err)
 	}
 
-	// Get the last inserted ID
+	// Get the last inserted ID for the entry
 	entryID, err := res.LastInsertId()
 	if err != nil {
 		return fmt.Errorf("error getting last insert ID: %w", err)
 	}
 
-	// Insert and link tags
+	// Insert and link tags for the entry
 	for _, tag := range tags {
+		var tagID int
 		// Insert tag, ignore if exists
 		_, err = tx.ExecContext(ctx, "INSERT OR IGNORE INTO tags (name) VALUES (?)", tag)
 		if err != nil {
@@ -68,7 +69,6 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end ti
 		}
 
 		// Get tag ID
-		var tagID int
 		err = tx.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
 		if err != nil {
 			return fmt.Errorf("error getting tag ID: %w", err)
@@ -83,7 +83,6 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end ti
 
 	return nil
 }
-
 func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string, tags []string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
