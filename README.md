@@ -6,10 +6,19 @@ Track your time and categorize it with tags. You can start and stop timers, or u
 
 #### Built with
 
-- [Cobra](https://github.com/spf13/cobra)
-- [Bubbletea](https://github.com/charmbracelet/bubbletea/)
-- [Huh?](https://github.com/charmbracelet/huh/)
-- SQLite and [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)
+- [Cobra](https://github.com/spf13/cobra) for powerful CLI interactions.
+- [Bubbletea](https://github.com/charmbracelet/bubbletea/) for a smooth TUI experience.
+- [Huh?](https://github.com/charmbracelet/huh/) for clear and helpful prompts.
+- SQLite, integrated with [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3), for robust data management.
+
+### Key Features
+
+- **Simple Time Tracking**: Easily start, stop, and manage timers.
+- **Project and Category Organization**: Assign time entries to specific projects and categories.
+- **Tagging System**: Add custom tags to time entries for enhanced tracking.
+- **Edit and Delete Options**: Modify or remove entries as needed.
+- **Interactive TUI**: Engage with a user-friendly text-based interface.
+- **Shell Autocompletion**: Speed up command execution with autocomplete scripts.
 
 ### Usage
 
