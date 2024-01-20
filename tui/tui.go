@@ -23,6 +23,7 @@ type model struct {
 	help          help.Model
 	entriesCursor int
 	timersCursor  int
+	menuCursor    int
 	stopwatch     stopwatch.Model
 
 	form       *huh.Form
@@ -77,6 +78,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Return to the main view or whatever your logic requires
 			m.currentView = "timers" // Adjust as needed
+		} else {
+			// Check for cancel key (e.g., Esc)
+			switch msg := msg.(type) {
+			case tea.KeyMsg:
+				if msg.Type == tea.KeyEsc {
+					// Reset or deactivate the form
+					m.form = nil // or any default state
+					m.formActive = false
+
+					// Return to the previous view or main view
+					// Adjust as needed
+
+					return m, nil
+				}
+			}
 		}
 
 		return m, cmd
