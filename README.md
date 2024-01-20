@@ -2,10 +2,12 @@
 
 Another CLI tool for time tracking. This one is written in Go.
 
-### Installation
+#### Built with
 
-```nix
-```
+- [Cobra](https://github.com/spf13/cobra)
+- [Bubbletea](https://github.com/charmbracelet/bubbletea/)
+- [Huh?](https://github.com/charmbracelet/huh/)
+- SQLite and [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3)
 
 ### Usage
 
@@ -29,6 +31,40 @@ Use "go-time [command] --help" for more information about a command.
 
 ```
 
+### NixOS Flakes Installation
 
+In `flake.nix` inputs add:
+
+```nix
+inputs = {
+  go-time.url = "github:erictossell/go-time";
+}; 
+```
+
+In `flake.nix` modules add:
+
+```nix
+modules = [
+  ({ pkgs, go-time, ... }: 
+  {
+    environment.systemPackages = with pkgs; [
+      go-time.packages.${system}.default
+    ];
+  })
+];
+```
+
+or
+
+Imported as a `module.nix`:
+
+```nix
+{ pkgs, go-time, ... }: 
+{
+  environment.systemPackages = with pkgs; [
+    go-time.packages.${system}.default
+  ];
+}
+```
 
 
