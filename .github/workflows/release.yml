@@ -48,11 +48,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
+      - name: Download Windows Artifact
         uses: actions/download-artifact@v4.1.1
         with:
-          name: go-time-zipped-${{ needs.build.outputs.os }}
-          path: output/
+          name: go-time-zipped-windows-latest
+          path: output/windows
+
+      - name: Download Ubuntu Artifact
+        uses: actions/download-artifact@v4.1.1
+        with:
+          name: go-time-zipped-ubuntu-latest
+          path: output/ubuntu
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4.1.1
+        with:
+          name: go-time-zipped-macos-latest
+          path: output/macos
 
       - name: Create Release
         id: create_release
@@ -65,13 +77,33 @@ jobs:
           draft: true
           prerelease: true
           
-      - name: Upload Release Asset
+      - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./output/go-time-zipped-${{ needs.build.outputs.os }}.zip
-          asset_name: go-time-${{ needs.build.outputs.os }}.zip
+          asset_path: ./output/windows/go-time-zipped-windows-latest.zip
+          asset_name: go-time-windows-latest.zip
+          asset_content_type: application/zip
+
+      - name: Upload Ubuntu Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/ubuntu/go-time-zipped-ubuntu-latest.zip
+          asset_name: go-time-ubuntu-latest.zip
+          asset_content_type: application/zip
+
+      - name: Upload macOS Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/macos/go-time-zipped-macos-latest.zip
+          asset_name: go-time-macos-latest.zip
           asset_content_type: application/zip
 
