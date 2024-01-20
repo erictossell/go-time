@@ -27,11 +27,16 @@ jobs:
       with:
         name: ${{ runner.os }}-artifacts
         path: output/
+    
     - name: Zip the artifacts
       run: |
-        cd output
-        zip -r go-time.zip go-time
-        
+        if [[ ${{ runner.os }} == 'Windows' ]]; then
+         Compress-Archive -Path output/go-time -DestinationPath output/go-time.zip
+        else
+          cd output
+          zip -r go-time.zip go-time
+        fi
+
   release:
     needs: build
     runs-on: ubuntu-latest
