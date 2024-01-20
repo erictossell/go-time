@@ -20,7 +20,7 @@ jobs:
         go-version: '1.21' # Replace with your Go version
 
     - name: Build
-      run: go build -v -o output/go-time ./cmd/go-time
+      run: go build -v -o output/go-time .
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4.2.0
