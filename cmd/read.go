@@ -74,10 +74,10 @@ func readEntries(ctx context.Context, db *sql.DB) {
 	tagsWidth := 20 // Adjust based on expected tag length
 
 	// Adjusted format strings
-	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, timeWidth, timeWidth, tagsWidth)
-	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, timeWidth, timeWidth, tagsWidth)
+	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
+	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
 
-	fmt.Printf(headerFormat, "ID", "Name", "Start Time", "End Time", "Tags")
+	fmt.Printf(headerFormat, "ID", "Name", "Tags", "Start Time", "End Time")
 	for _, entry := range entries {
 		tags, err := getTagsForEntry(entry.ID)
 		if err != nil {
@@ -85,7 +85,7 @@ func readEntries(ctx context.Context, db *sql.DB) {
 			continue
 		}
 		tagStr := strings.Join(tags, ", ")
-		fmt.Printf(rowFormat, entry.ID, entry.Name, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339), tagStr)
+		fmt.Printf(rowFormat, entry.ID, entry.Name, tagStr, entry.StartTime.Format(time.RFC3339), entry.EndTime.Format(time.RFC3339))
 	}
 }
 
@@ -130,7 +130,7 @@ func readTimers(ctx context.Context, db *sql.DB) {
 	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds \n", idWidth, nameWidth, timeWidth, tagsWidth)
 	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds \n", idWidth, nameWidth, timeWidth, tagsWidth)
 
-	fmt.Printf(headerFormat, "ID", "Name", "Start Time", "Tags")
+	fmt.Printf(headerFormat, "ID", "Name", "Tags", "Start Time")
 
 	for _, timer := range timers {
 		tags, err := getTagsForTimer(timer.ID)
@@ -139,6 +139,6 @@ func readTimers(ctx context.Context, db *sql.DB) {
 			continue
 		}
 		tagStr := strings.Join(tags, ", ")
-		fmt.Printf(rowFormat, timer.ID, timer.Name, timer.StartTime.Format(time.RFC3339), tagStr)
+		fmt.Printf(rowFormat, timer.ID, timer.Name, tagStr, timer.StartTime.Format(time.RFC3339))
 	}
 }
