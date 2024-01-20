@@ -16,7 +16,6 @@ Track your time and categorize it with tags. You can start and stop timers, or u
 - **Simple Time Tracking**: Easily start, stop, and manage timers.
 - **Project and Category Organization**: Assign time entries to specific projects and categories.
 - **Tagging System**: Add custom tags to time entries for enhanced tracking.
-- **Edit and Delete Options**: Modify or remove entries as needed.
 - **Interactive TUI**: Engage with a user-friendly text-based interface.
 - **Shell Autocompletion**: Speed up command execution with autocomplete scripts.
 
