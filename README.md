@@ -2,6 +2,8 @@
 
 Another CLI tool for time tracking. This one is written in Go.
 
+Track your time and categorize it with tags. You can start and stop timers, or use the TUI to manage your time entries.
+
 #### Built with
 
 - [Cobra](https://github.com/spf13/cobra)
@@ -41,22 +43,7 @@ inputs = {
 }; 
 ```
 
-In `flake.nix` modules add:
-
-```nix
-modules = [
-  ({ pkgs, go-time, ... }: 
-  {
-    environment.systemPackages = with pkgs; [
-      go-time.packages.${system}.default
-    ];
-  })
-];
-```
-
-or
-
-Imported as a `module.nix`:
+Import as a `module.nix`:
 
 ```nix
 { pkgs, go-time, ... }: 
@@ -66,5 +53,4 @@ Imported as a `module.nix`:
   ];
 }
 ```
-
 
