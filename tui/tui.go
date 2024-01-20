@@ -103,7 +103,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.up):
 			if m.currentView == "entries" && m.entriesCursor > 0 {
 				m.entriesCursor--
-			} else if m.currentView == "timers" || m.currentView == "timer" && m.timersCursor > 0 {
+			} else if (m.currentView == "timers" || m.currentView == "timer") && m.timersCursor > 0 {
 				m.timersCursor--
 				cmd := m.startStopwatch(m.timers[m.timersCursor])
 				return m, cmd
@@ -112,7 +112,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.down):
 			if m.currentView == "entries" && m.entriesCursor < len(m.entries)-1 {
 				m.entriesCursor++
-			} else if m.currentView == "timers" || m.currentView == "timer" && m.timersCursor < len(m.timers)-1 {
+			} else if (m.currentView == "timers" || m.currentView == "timer") && m.timersCursor < len(m.timers)-1 {
 				m.timersCursor++
 				cmd := m.startStopwatch(m.timers[m.timersCursor])
 				return m, cmd
