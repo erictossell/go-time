@@ -76,7 +76,10 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: true
           prerelease: true
-          
+      
+      - name: List files in output/windows
+        run: ls -lR ./output/windows
+    
       - name: Upload Windows Release Asset
         uses: actions/upload-release-asset@v1
         env:
