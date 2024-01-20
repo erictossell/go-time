@@ -9,18 +9,32 @@ import (
 )
 
 func StartCmd(db *sql.DB) *cobra.Command {
-	return &cobra.Command{
-		Use:   "start [task name] [tags]",
+	var taskName string
+	var tags []string
+
+	cmd := &cobra.Command{
+		Use:   "start",
 		Short: "Start a new timer with optional tags",
-		Args:  cobra.MinimumNArgs(1), // At least the task name is required
+		Long:  `Start a new timer for a task with optional tags. Specify the task name and tags using flags.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			taskName := args[0]
-			tags := args[1:] // Remaining arguments are considered as tags
+
+			if taskName == "" {
+				log.Println("Task name is required. Use the --name flag to specify the task name.")
+				return
+			}
 
 			if err := godb.CreateTimer(ctx, db, taskName, tags); err != nil {
-				log.Printf("error starting timer: %v", err)
+				log.Printf("Error starting timer: %v", err)
+			} else {
+				log.Println("Timer started for task:", taskName)
 			}
 		},
 	}
+
+	cmd.Flags().StringVarP(&taskName, "name", "n", "", "Name of the task")
+	cmd.MarkFlagRequired("name")
+	cmd.Flags().StringArrayVarP(&tags, "tags", "t", nil, "Tags for the timer")
+
+	return cmd
 }

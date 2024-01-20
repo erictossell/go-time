@@ -11,17 +11,14 @@ import (
 )
 
 func ReadCmd(db *sql.DB) *cobra.Command {
-	return &cobra.Command{
-		Use:   "read [timers|entries]",
+	var listType string
+
+	cmd := &cobra.Command{
+		Use:   "read",
 		Short: "List all active timers or time entries",
-		Long:  `Read command is used to list all active timers or time entries. If no argument is provided, it defaults to listing timers.`,
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Read command is used to list all active timers or time entries. Use the --type flag to specify 'timers' or 'entries'.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			listType := "timers"
-			if len(args) > 0 {
-				listType = args[0]
-			}
 
 			switch listType {
 			case "entries":
@@ -29,10 +26,14 @@ func ReadCmd(db *sql.DB) *cobra.Command {
 			case "timers":
 				readTimers(ctx, db)
 			default:
-				fmt.Println("Invalid argument. Please specify 'entries' or 'timers'.")
+				fmt.Println("Invalid type. Please specify 'entries' or 'timers' using the --type flag.")
 			}
 		},
 	}
+
+	cmd.Flags().StringVarP(&listType, "type", "t", "timers", "Specify 'entries' or 'timers' to list")
+
+	return cmd
 }
 
 func readEntries(ctx context.Context, db *sql.DB) {

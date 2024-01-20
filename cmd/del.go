@@ -6,29 +6,30 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	godb "go-time/db" // Adjust this import path as necessary
-	"strconv"
 )
 
-// EditCmd creates a new edit command.
+// DelCmd creates a new delete command.
 func DelCmd(db *sql.DB) *cobra.Command {
-	return &cobra.Command{
-		Use:   "del [id]",
+	var id int
+
+	cmd := &cobra.Command{
+		Use:   "del",
 		Short: "Delete an existing time entry",
-		Args:  cobra.MinimumNArgs(1),
+		Long:  `Delete an existing time entry by specifying its ID.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Println("Invalid ID:", err)
-				return
-			}
 
-			err = godb.DeleteEntry(ctx, db, id)
+			err := godb.DeleteEntry(ctx, db, id)
 			if err != nil {
-				fmt.Println("Error editing time entry:", err)
+				fmt.Println("Error deleting time entry:", err)
 				return
 			}
 			fmt.Println("Time entry deleted.")
 		},
 	}
+
+	cmd.Flags().IntVarP(&id, "id", "i", 0, "ID of the time entry to delete")
+	cmd.MarkFlagRequired("id")
+
+	return cmd
 }

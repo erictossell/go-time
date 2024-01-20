@@ -8,17 +8,28 @@ import (
 	//"go-time/stopwatch"
 )
 
+type keymap struct {
+	start      key.Binding
+	stop       key.Binding
+	up         key.Binding
+	down       key.Binding
+	left       key.Binding
+	right      key.Binding
+	quit       key.Binding
+	selectItem key.Binding
+}
+
 func initialModel(db *sql.DB) model {
 	keymap := keymap{
 		start: key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "start timer")),
 		stop:  key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "stop timer")),
-		up:    key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "up")),
-		down:  key.NewBinding(key.WithKeys("j"), key.WithHelp("j", "down")),
-		left:  key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "left")),
-		right: key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "right")),
+		up:    key.NewBinding(key.WithKeys("k", "up"), key.WithHelp("k", "up")),
+		down:  key.NewBinding(key.WithKeys("j", "down"), key.WithHelp("j", "down")),
+		left:  key.NewBinding(key.WithKeys("h", "left"), key.WithHelp("h", "left")),
+		right: key.NewBinding(key.WithKeys("l", "right"), key.WithHelp("l", "right")),
 
 		quit:       key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
-		selectItem: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "select")),
+		selectItem: key.NewBinding(key.WithKeys("enter", " "), key.WithHelp("enter", "select")),
 	}
 	return model{
 		db:          db,

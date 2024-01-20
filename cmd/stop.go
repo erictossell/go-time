@@ -9,17 +9,30 @@ import (
 )
 
 func StopCmd(db *sql.DB) *cobra.Command {
-	return &cobra.Command{
-		Use:   "stop [task name] [tags]",
-		Short: "Stop the current timer and add tags",
-		Args:  cobra.MinimumNArgs(1),
+	var taskName string
+
+	cmd := &cobra.Command{
+		Use:   "stop",
+		Short: "Stop the current timer for a task",
+		Long:  `Stop the current timer for a task. Specify the task name using the --name flag.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			taskName := args[0]
+
+			if taskName == "" {
+				log.Println("Task name is required. Use the --name flag to specify the task name.")
+				return
+			}
 
 			if err := godb.StopTimer(ctx, db, taskName); err != nil {
-				log.Printf("error stopping timer: %v", err)
+				log.Printf("Error stopping timer: %v", err)
+			} else {
+				log.Println("Timer stopped for task:", taskName)
 			}
 		},
 	}
+
+	cmd.Flags().StringVarP(&taskName, "name", "n", "", "Name of the task to stop")
+	cmd.MarkFlagRequired("name")
+
+	return cmd
 }
