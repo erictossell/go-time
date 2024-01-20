@@ -30,12 +30,14 @@ jobs:
     
     - name: Zip the artifacts
       run: |
-        if [[ ${{ runner.os }} == 'Windows' ]]; then
-         Compress-Archive -Path output/go-time -DestinationPath output/go-time.zip
-        else
+        if ($env:RUNNER_OS -eq 'Windows') {
+          Compress-Archive -Path output/go-time -DestinationPath output/go-time.zip
+        } else {
           cd output
           zip -r go-time.zip go-time
-        fi
+        }
+      shell: pwsh
+
 
   release:
     needs: build
