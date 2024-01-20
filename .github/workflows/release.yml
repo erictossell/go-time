@@ -12,66 +12,66 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21' # Replace with your Go version
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21' # Replace with your Go version
 
-    - name: Build
-      run: go build -v -o output/go-time .
+      - name: Build
+        run: go build -v -o output/go-time .
 
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v4.2.0
-      with:
-        name: ${{ runner.os }}-artifacts
-        path: output/
-    
-    - name: Zip the artifacts
-      run: |
-        if ($env:RUNNER_OS -eq 'Windows') {
-          Compress-Archive -Path output/go-time -DestinationPath output/go-time.zip
-        } else {
-          cd output
-          zip -r go-time.zip go-time
-        }
-      shell: pwsh
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4.2.0
+        with:
+          name: ${{ runner.os }}-artifacts
+          path: output/
+      
+      - name: Zip the artifacts
+        run: |
+          if ($env:RUNNER_OS -eq 'Windows') {
+            Compress-Archive -Path output/go-time -DestinationPath output/go-time.zip
+          } else {
+            cd output
+            zip -r go-time.zip go-time
+          }
+        shell: pwsh
 
-    - name: Upload zipped artifact
-      uses: actions/upload-artifact@v4.2.0
-      with:
-        name: go-time-zipped-${{ matrix.os }}
-        path: output/go-time.zip
+      - name: Upload zipped artifact
+        uses: actions/upload-artifact@v4.2.0
+        with:
+          name: go-time-zipped-${{ matrix.os }}
+          path: output/go-time.zip
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4.1.1
-      with:
-        name: go-time-zipped-${{ needs.build.outputs.os }}
-        path: output/
+      - name: Download artifacts
+        uses: actions/download-artifact@v4.1.1
+        with:
+          name: go-time-zipped-${{ needs.build.outputs.os }}
+          path: output/
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: true
-        prerelease: true
-        
-    - name: Upload Release Asset
-    uses: actions/upload-release-asset@v1
-    env:
-      GITHUB_TOKEN: ${{ secrets.TOKEN }}
-    with:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      asset_path: ./output/go-time-zipped-${{ needs.build.outputs.os }}.zip
-      asset_name: go-time-${{ needs.build.outputs.os }}.zip
-      asset_content_type: application/zip
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: true
+          
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/go-time-zipped-${{ needs.build.outputs.os }}.zip
+          asset_name: go-time-${{ needs.build.outputs.os }}.zip
+          asset_content_type: application/zip
 
