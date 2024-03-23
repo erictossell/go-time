@@ -23,7 +23,8 @@
           pkgs = nixpkgsFor.${system};
         in
         {
-          default = (import ./shell.nix { inherit pkgs; });
+          default = (import ./sh/shell.nix { inherit pkgs; });
+          build-windows = (import ./sh/build-windows.nix { inherit pkgs; });
         });
 
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
