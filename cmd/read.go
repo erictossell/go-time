@@ -43,7 +43,7 @@ func readEntries(ctx context.Context, db *sql.DB) {
 		return
 	}
 
-	// Additional function to get tags for each entry
+
 	getTagsForEntry := func(entryID int) ([]string, error) {
 		var tags []string
 		query := `
@@ -67,14 +67,14 @@ func readEntries(ctx context.Context, db *sql.DB) {
 		return tags, nil
 	}
 
-	// Determine the width of each column
+
 	idWidth := 4
 	nameWidth := 20
 
 	timeWidth := 25
-	tagsWidth := 20 // Adjust based on expected tag length
+	tagsWidth := 20 
 
-	// Adjusted format strings
+
 	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
 	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
 

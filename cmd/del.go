@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
-	godb "go-time/db" // Adjust this import path as necessary
+	godb "go-time/db" 
 )
 
-// DelCmd creates a new delete command.
+
 func DelCmd(db *sql.DB) *cobra.Command {
 	var id int
 

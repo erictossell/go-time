@@ -15,6 +15,13 @@ type Timer struct {
 	Tags      []string
 }
 
+type TimerState struct {
+	ID        int       `json:"id"`
+	IsRunning bool      `json:"is_running"`
+	TaskName  string    `json:"task_name"`
+	StartTime time.Time `json:"start_time"`
+}
+
 func IsTimerRunning(ctx context.Context, db *sql.DB, taskName string) (bool, error) {
 	var count int
 	err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM timer_state WHERE is_running = 1 AND task_name = ?", taskName).Scan(&count)
@@ -68,19 +75,19 @@ func CreateTimer(ctx context.Context, db *sql.DB, taskName string, tags []string
 
 	for _, tag := range tags {
 		var tagID int
-		// Insert tag, ignore if exists
+		
 		_, err = db.ExecContext(ctx, "INSERT OR IGNORE INTO tags (name) VALUES (?)", tag)
 		if err != nil {
 			return fmt.Errorf("error inserting tag: %w", err)
 		}
 
-		// Get tag ID
+		
 		err = db.QueryRowContext(ctx, "SELECT id FROM tags WHERE name = ?", tag).Scan(&tagID)
 		if err != nil {
 			return fmt.Errorf("error getting tag ID: %w", err)
 		}
 
-		// Link tag with timer
+		
 		_, err = db.ExecContext(ctx, "INSERT INTO timer_tags (timer_id, tag_id) VALUES (?, ?)", timerID, tagID)
 		if err != nil {
 			return fmt.Errorf("error linking tag with timer: %w", err)
@@ -109,7 +116,7 @@ func StopTimer(ctx context.Context, db *sql.DB, taskName string) error {
 		return fmt.Errorf("error fetching running timer: %w", err)
 	}
 
-	// Fetch tags associated with the timer
+	
 	tags, err := fetchTagsForTimer(ctx, tx, timerID)
 	if err != nil {
 		return fmt.Errorf("error fetching tags for timer: %w", err)

@@ -7,22 +7,27 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type Tag struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 func addTagsToEntry(db *sql.DB, entryID int, tags []string) error {
 	for _, tagName := range tags {
-		// Insert tag into tags table, ignore if it already exists
+		
 		_, err := db.Exec("INSERT OR IGNORE INTO tags (name) VALUES (?)", tagName)
 		if err != nil {
 			return fmt.Errorf("error inserting tag: %w", err)
 		}
 
-		// Get tag ID
+		
 		var tagID int
 		err = db.QueryRow("SELECT id FROM tags WHERE name = ?", tagName).Scan(&tagID)
 		if err != nil {
 			return fmt.Errorf("error getting tag ID: %w", err)
 		}
 
-		// Link tag with entry
+		
 		_, err = db.Exec("INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)", entryID, tagID)
 		if err != nil {
 			return fmt.Errorf("error linking tag with entry: %w", err)

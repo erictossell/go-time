@@ -10,7 +10,6 @@ func (m model) topBarView() string {
 	menuItems := []string{"entries", "timers", "timer"}
 	for _, item := range menuItems {
 		if m.currentView == item {
-			// Highlight the selected menu item. For example, using bold style.
 			view += "[" + item + "]"
 		} else {
 			view += " " + item + " "
@@ -36,11 +35,9 @@ func (m model) entriesView() string {
 	}
 
 	for i, entry := range m.entries {
-
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
+		cursor := " "
 		if m.entriesCursor == i {
-			cursor = ">" // cursor!
+			cursor = ">"
 		}
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Description: %s, Start: %s, End: %s",
 			cursor, entry.ID, entry.Name, entry.Description, entry.StartTime.Format("2006-01-02 15:04:05"),
@@ -60,10 +57,9 @@ func (m model) timersView() string {
 	}
 
 	for i, timer := range m.timers {
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
+		cursor := " "
 		if m.timersCursor == i {
-			cursor = ">" // cursor!
+			cursor = ">"
 		}
 
 		line := fmt.Sprintf("%s ID: %d, Name: %s, Start: %s",

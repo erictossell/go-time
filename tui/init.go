@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	//"go-time/stopwatch"
 )
 
 type keymap struct {
@@ -36,7 +35,7 @@ func initialModel(db *sql.DB) model {
 		currentView: "timers",
 		keymap:      keymap,
 		help:        help.New(),
-		form:        addEntryForm(), // assuming setupForm returns a *huh.Form
+		form:        addEntryForm(),
 		formActive:  false,
 	}
 }

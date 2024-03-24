@@ -7,7 +7,6 @@ import (
 	"log"
 )
 
-// TuiCmd creates a new TUI command.
 func TuiCmd(db *sql.DB) *cobra.Command {
 	return &cobra.Command{
 		Use:   "tui",
@@ -22,7 +21,6 @@ func TuiCmd(db *sql.DB) *cobra.Command {
 }
 
 func startTUI(db *sql.DB) error {
-	// Your TUI initialization and start logic
 	tui.Main(db)
 	return nil
 }

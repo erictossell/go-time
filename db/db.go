@@ -15,7 +15,7 @@ func InitDB(dbFile string) (*sql.DB, error) {
 	}
 
 	if err := createTables(db); err != nil {
-		db.Close() // Close the database connection on error
+		db.Close() 
 		return nil, err
 	}
 
