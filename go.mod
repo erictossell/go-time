@@ -1,5 +1,7 @@
 module go-time
 
+go 1.22.2
+
 require (
 	github.com/charmbracelet/bubbles v0.17.1
 	github.com/charmbracelet/bubbletea v0.25.0
