@@ -19,15 +19,16 @@ type model struct {
 	currentView   string
 	entries       []godb.Entry
 	timers        []godb.Timer
+	tags          []godb.Tag
 	keymap        keymap
 	help          help.Model
 	entriesCursor int
 	timersCursor  int
+	tagsCursor    int
 	menuCursor    int
 	stopwatch     stopwatch.Model
-
-	form       *huh.Form
-	formActive bool
+	form          *huh.Form
+	formActive    bool
 }
 
 func Main(db *sql.DB) {
@@ -51,11 +52,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
-
 	err = m.updateEntries()
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
+	err = m.updateTags()
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
 	if m.formActive {
 		var cmd tea.Cmd
 		updatedForm, cmd := m.form.Update(msg)
@@ -64,14 +69,60 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if m.form.State == huh.StateCompleted {
 			name := m.form.GetString("name")
+			startTimeStr := m.form.GetString("startTime")
+			const layout = "2006-01-02 15:04:05"
+			endTimeStr := m.form.GetString("endTime")
+			tags := m.form.Get("tags")
+			endTimeParsed := time.Time{}
 
-			err := godb.CreateTimer(context.Background(), m.db, name, []string{})
+			startTimeParsed, err := time.Parse(layout, startTimeStr)
 			if err != nil {
-				fmt.Println("Error: ", err)
+				fmt.Println("Error parsing endTime: ", err)
 			}
-			m.form = addEntryForm()
-			m.formActive = false
-			m.currentView = "timers"
+
+			// Parse endTime from string to time.Time
+			if endTimeStr != "" {
+
+				endTimeParsed, err = time.Parse(layout, endTimeStr)
+				if err != nil {
+					fmt.Println("Error parsing endTime: ", err)
+				}
+			}
+
+			// Convert tags to []string
+			tagsParsed, ok := tags.([]string)
+			if !ok {
+				fmt.Println("Error: tags is not of type []string")
+			}
+
+			switch m.currentView {
+			case "entries":
+				tx, err := m.db.Begin()
+				godb.CreateEntry(context.Background(), tx, name, startTimeParsed, endTimeParsed, tagsParsed)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				m.form = entryForm()
+				m.formActive = false
+				m.currentView = "entries"
+			case "timers":
+				err := godb.CreateTimer(context.Background(), m.db, name, tagsParsed)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				m.form = timerForm()
+				m.formActive = false
+				m.currentView = "timers"
+
+			case "tags":
+				err := godb.CreateTag(context.Background(), m.db, name)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+				m.form = tagForm()
+				m.formActive = false
+				m.currentView = "tags"
+			}
 		} else {
 			switch msg := msg.(type) {
 			case tea.KeyMsg:
@@ -89,33 +140,73 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.up):
-			if m.currentView == "entries" && m.entriesCursor > 0 {
-				m.entriesCursor--
-			} else if (m.currentView == "timers" || m.currentView == "timer") && m.timersCursor > 0 {
-				m.timersCursor--
-				cmd := m.startStopwatch(m.timers[m.timersCursor])
-				return m, cmd
+			switch m.currentView {
+			case "entries":
+				if m.entriesCursor > 0 {
+					m.entriesCursor--
+				}
+			case "timers", "timer":
+				if m.timersCursor > 0 {
+					m.timersCursor--
+					cmd := m.startStopwatch(m.timers[m.timersCursor])
+					return m, cmd
+				}
+			case "tags":
+				if m.tagsCursor > 0 {
+					m.tagsCursor--
+				}
 			}
 
 		case key.Matches(msg, m.keymap.down):
-			if m.currentView == "entries" && m.entriesCursor < len(m.entries)-1 {
-				m.entriesCursor++
-			} else if (m.currentView == "timers" || m.currentView == "timer") && m.timersCursor < len(m.timers)-1 {
-				m.timersCursor++
-				cmd := m.startStopwatch(m.timers[m.timersCursor])
-				return m, cmd
-			}
-
-		case key.Matches(msg, m.keymap.selectItem):
 			switch m.currentView {
 			case "entries":
-				m.form = editEntryForm()
+				if m.entriesCursor < len(m.entries)-1 {
+					m.entriesCursor++
+				}
+			case "timers", "timer":
+				if m.timersCursor < len(m.timers)-1 {
+					m.timersCursor++
+					cmd := m.startStopwatch(m.timers[m.timersCursor])
+					return m, cmd
+				}
+			case "tags":
+				if m.tagsCursor < len(m.tags)-1 {
+					m.tagsCursor++
+				}
+			}
+
+		case key.Matches(msg, m.keymap.add):
+			switch m.currentView {
+			case "entries":
+				m.form = entryForm()
 				m.formActive = true
 			case "timers":
-				m.form = addEntryForm()
+				m.form = timerForm()
+				m.formActive = true
+			case "tags":
+				m.form = tagForm()
 				m.formActive = true
 			}
 			return m, nil
+
+		case key.Matches(msg, m.keymap.edit):
+			switch m.currentView {
+			case "entries":
+				entry := m.entries[m.entriesCursor]
+				m.form = entryEditForm(entry)
+				m.formActive = true
+
+			case "timers":
+				timer := m.timers[m.timersCursor]
+				m.form = timerEditForm(timer)
+				m.formActive = true
+
+			case "tags":
+				tag := m.tags[m.tagsCursor]
+				m.form = tagEditForm(tag)
+				m.formActive = true
+
+			}
 
 		case key.Matches(msg, m.keymap.left):
 			m.navigateMenu(-1)
@@ -160,6 +251,13 @@ func (m model) View() string {
 		} else {
 			s += m.timersView()
 		}
+	case "tags":
+		err = m.updateTags()
+		if err != nil {
+			s += "Error: " + err.Error()
+		} else {
+			s += m.tagsView()
+		}
 	case "timer":
 		s += m.timerView()
 	}
@@ -187,6 +285,16 @@ func (m *model) updateTimers() error {
 	return nil
 }
 
+func (m *model) updateTags() error {
+	ctx := context.Background()
+	tags, err := godb.GetTags(ctx, m.db)
+	if err != nil {
+		return err
+	}
+	m.tags = tags
+	return nil
+}
+
 func (m *model) startStopwatch(timer godb.Timer) tea.Cmd {
 	startTime := timer.StartTime
 	elapsedTime := time.Since(startTime)
@@ -197,7 +305,7 @@ func (m *model) startStopwatch(timer godb.Timer) tea.Cmd {
 }
 
 func (m *model) navigateMenu(direction int) {
-	menuItems := []string{"entries", "timers", "timer"}
+	menuItems := []string{"entries", "timers", "timer", "tags"}
 	currentIndex := indexOf(menuItems, m.currentView)
 	if currentIndex != -1 {
 		newIndex := (currentIndex + direction + len(menuItems)) % len(menuItems)

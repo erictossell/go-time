@@ -46,7 +46,7 @@ func ReadEntries(ctx context.Context, db *sql.DB) ([]Entry, error) {
 	return entries, nil
 }
 
-func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end time.Time, tags []string) error {
+func CreateEntry(ctx context.Context, tx *sql.Tx, name string, start, end time.Time, tags []string) error {
 	if name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
@@ -84,6 +84,7 @@ func InsertTimeEntry(ctx context.Context, tx *sql.Tx, name string, start, end ti
 
 	return nil
 }
+
 func EditEntry(ctx context.Context, db *sql.DB, id int, name, description string, tags []string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {

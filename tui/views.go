@@ -7,7 +7,7 @@ import (
 
 func (m model) topBarView() string {
 	view := "---------- Go-Time ---------- \n"
-	menuItems := []string{"entries", "timers", "timer"}
+	menuItems := []string{"entries", "timers", "timer", "tags"}
 	for _, item := range menuItems {
 		if m.currentView == item {
 			view += "[" + item + "]"
@@ -22,9 +22,34 @@ func (m model) helpView() string {
 	return "\n" + m.help.ShortHelpView([]key.Binding{
 		m.keymap.up,
 		m.keymap.down,
-		m.keymap.selectItem,
+		m.keymap.left,
+		m.keymap.right,
+
+		m.keymap.add,
+		m.keymap.edit,
+		m.keymap.delete,
+
 		m.keymap.quit,
 	})
+}
+
+func (m model) tagsView() string {
+	view := m.topBarView()
+	err := m.updateTags()
+
+	if err != nil {
+		return "Error: " + err.Error()
+	}
+
+	for i, tag := range m.tags {
+		cursor := " "
+		if m.tagsCursor == i {
+			cursor = ">"
+		}
+		view += fmt.Sprintf("%s ID: %d, Name: %s\n", cursor, tag.ID, tag.Name)
+	}
+	view += m.helpView()
+	return view
 }
 
 func (m model) entriesView() string {

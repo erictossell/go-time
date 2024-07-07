@@ -15,7 +15,7 @@ func InitDB(dbFile string) (*sql.DB, error) {
 	}
 
 	if err := createTables(db); err != nil {
-		db.Close() 
+		db.Close()
 		return nil, err
 	}
 
@@ -31,10 +31,10 @@ func createTables(db *sql.DB) error {
         start_time DATETIME NOT NULL,
         end_time DATETIME NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS timer_state (
+    CREATE TABLE IF NOT EXISTS timers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         is_running BOOLEAN NOT NULL,
-        task_name TEXT,
+        name TEXT,
         start_time DATETIME
     );
     CREATE TABLE IF NOT EXISTS tags (
@@ -52,7 +52,7 @@ func createTables(db *sql.DB) error {
     	timer_id INTEGER NOT NULL,
     	tag_id INTEGER NOT NULL,
     	PRIMARY KEY (timer_id, tag_id),
-    	FOREIGN KEY (timer_id) REFERENCES timer_state(id) ON DELETE CASCADE,
+    	FOREIGN KEY (timer_id) REFERENCES timers(id) ON DELETE CASCADE,
     	FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
     );
 	`
