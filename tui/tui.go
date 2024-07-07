@@ -208,13 +208,37 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			}
 
+		case key.Matches(msg, m.keymap.delete):
+			switch m.currentView {
+			case "entries":
+				entry := m.entries[m.entriesCursor]
+				err := godb.DeleteEntry(context.Background(), m.db, entry.ID)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+			case "timers":
+				timer := m.timers[m.timersCursor]
+				err := godb.DeleteTimer(context.Background(), m.db, timer.ID)
+
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+
+			case "tags":
+				tag := m.tags[m.tagsCursor]
+				err := godb.DeleteTag(context.Background(), m.db, tag.ID)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+			}
+
 		case key.Matches(msg, m.keymap.left):
 			m.navigateMenu(-1)
 			return m, nil
 
 		case key.Matches(msg, m.keymap.right):
 			m.navigateMenu(1)
-			if m.currentView == "timer" {
+			if m.currentView == "timer" && len(m.timers) > 0 {
 				cmd := m.startStopwatch(m.timers[m.timersCursor])
 				return m, cmd
 

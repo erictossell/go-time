@@ -71,6 +71,14 @@ func CreateTag(ctx context.Context, db *sql.DB, name string) error {
 	return nil
 }
 
+func DeleteTag(ctx context.Context, db *sql.DB, id int) error {
+	_, err := db.Exec("DELETE FROM tags WHERE id = ?", id)
+	if err != nil {
+		return fmt.Errorf("error deleting tag: %w", err)
+	}
+	return nil
+}
+
 func GetTags(ctx context.Context, db *sql.DB) ([]Tag, error) {
 	var tags []Tag
 	rows, err := db.Query("SELECT id, name FROM tags")

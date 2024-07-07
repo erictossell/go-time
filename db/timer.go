@@ -135,6 +135,35 @@ func StopTimer(ctx context.Context, db *sql.DB, timerName string) error {
 	return nil
 }
 
+func DeleteTimer(ctx context.Context, db *sql.DB, timerID int) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+
+	defer func() {
+		if rbErr := tx.Rollback(); rbErr != nil && rbErr != sql.ErrTxDone {
+			log.Printf("transaction rollback error: %v", rbErr)
+		}
+	}()
+
+	_, err = tx.ExecContext(ctx, "DELETE FROM timer_tags WHERE timer_id = ?", timerID)
+	if err != nil {
+		return fmt.Errorf("error deleting timer tags: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, "DELETE FROM timers WHERE id = ?", timerID)
+	if err != nil {
+		return fmt.Errorf("error deleting timer: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	return nil
+}
+
 func fetchTagsForTimer(ctx context.Context, tx *sql.Tx, timerID int) ([]string, error) {
 	var tags []string
 	query := `

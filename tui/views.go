@@ -99,8 +99,20 @@ func (m model) timersView() string {
 func (m model) timerView() string {
 	view := m.topBarView()
 
-	timer := m.timers[m.timersCursor]
+	if len(m.timers) == 0 {
+		view += "No timers available\n"
+		view += m.helpView()
+		return view
+	}
 
+	// Ensure m.timersCursor is within bounds
+	if m.timersCursor >= len(m.timers) {
+		view += "No timer selected\n"
+		view += m.helpView()
+		return view
+	}
+
+	timer := m.timers[m.timersCursor]
 	line := fmt.Sprintf("ID: %d, Name: %s, Start: %s",
 		timer.ID, timer.Name, timer.StartTime.Format("2006-01-02 15:04:05"))
 	view += line + "\n"
