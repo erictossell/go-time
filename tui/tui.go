@@ -48,6 +48,8 @@ func Main(db *sql.DB) {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	err := m.updateTimers()
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -62,32 +64,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.formActive {
-		var cmd tea.Cmd
-		updatedForm, cmd := m.form.Update(msg)
-		if updatedForm, ok := updatedForm.(*huh.Form); ok {
-			m.form = updatedForm
+
+		form, cmd := m.form.Update(msg)
+		if f, ok := form.(*huh.Form); ok {
+			m.form = f
+			cmds = append(cmds, cmd)
 		}
 		if m.form.State == huh.StateCompleted {
 			name := m.form.GetString("name")
-			startTimeStr := m.form.GetString("startTime")
-			const layout = "2006-01-02 15:04:05"
-			endTimeStr := m.form.GetString("endTime")
+
 			tags := m.form.Get("tags")
-			endTimeParsed := time.Time{}
-
-			startTimeParsed, err := time.Parse(layout, startTimeStr)
-			if err != nil {
-				fmt.Println("Error parsing endTime: ", err)
-			}
-
-			// Parse endTime from string to time.Time
-			if endTimeStr != "" {
-
-				endTimeParsed, err = time.Parse(layout, endTimeStr)
-				if err != nil {
-					fmt.Println("Error parsing endTime: ", err)
-				}
-			}
 
 			// Convert tags to []string
 			tagsParsed, ok := tags.([]string)
@@ -96,49 +82,126 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			switch m.currentView {
+
 			case "entries":
-				tx, err := m.db.Begin()
-				godb.CreateEntry(context.Background(), tx, name, startTimeParsed, endTimeParsed, tagsParsed)
+
 				if err != nil {
 					fmt.Println("Error: ", err)
 				}
-				m.form = entryForm()
+
+				//tx, err := m.db.Begin()
+				//godb.CreateEntry(context.Background(), tx, name, startTimeParsed, endTimeParsed, tagsParsed)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+
 				m.formActive = false
-				m.currentView = "entries"
+
 			case "timers":
-				err := godb.CreateTimer(context.Background(), m.db, name, tagsParsed)
+
 				if err != nil {
 					fmt.Println("Error: ", err)
 				}
-				m.form = timerForm()
+
+				err = godb.CreateTimer(context.Background(), m.db, name, tagsParsed)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+
 				m.formActive = false
-				m.currentView = "timers"
 
 			case "tags":
 				err := godb.CreateTag(context.Background(), m.db, name)
 				if err != nil {
 					fmt.Println("Error: ", err)
 				}
-				m.form = tagForm()
+
 				m.formActive = false
-				m.currentView = "tags"
+
 			}
 		} else {
 			switch msg := msg.(type) {
 			case tea.KeyMsg:
 				if msg.Type == tea.KeyEsc {
-					m.form = nil
+					m.form = tagForm()
 					m.formActive = false
-					return m, nil
 				}
 			}
 		}
 
-		return m, cmd
+		return m, tea.Batch(cmds...)
 	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keymap.add):
+			tags, err := godb.GetTags(context.Background(), m.db)
+			if err != nil {
+				fmt.Println("Error: ", err)
+			}
+			tagsStr := make([]string, len(tags))
+			switch m.currentView {
+			case "entries":
+				m.form = entryForm(tagsStr)
+				m.formActive = true
+			case "timers":
+				m.form = timerForm(tagsStr)
+				m.formActive = true
+			case "tags":
+				m.form = tagForm()
+				m.formActive = true
+			}
+			return m, nil
+
+		case key.Matches(msg, m.keymap.edit):
+			tags, err := godb.GetTags(context.Background(), m.db)
+			if err != nil {
+				fmt.Println("Error: ", err)
+			}
+			tagsStr := make([]string, len(tags))
+
+			switch m.currentView {
+			case "entries":
+				entry := m.entries[m.entriesCursor]
+				m.form = entryEditForm(entry, tagsStr)
+				m.formActive = true
+
+			case "timers":
+				timer := m.timers[m.timersCursor]
+				m.form = timerEditForm(timer, tagsStr)
+				m.formActive = true
+
+			case "tags":
+				tag := m.tags[m.tagsCursor]
+				m.form = tagEditForm(tag)
+				m.formActive = true
+
+			}
+
+		case key.Matches(msg, m.keymap.delete):
+			switch m.currentView {
+			case "entries":
+				entry := m.entries[m.entriesCursor]
+				err := godb.DeleteEntry(context.Background(), m.db, entry.ID)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+			case "timers":
+				timer := m.timers[m.timersCursor]
+				err := godb.DeleteTimer(context.Background(), m.db, timer.ID)
+
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+
+			case "tags":
+				tag := m.tags[m.tagsCursor]
+				err := godb.DeleteTag(context.Background(), m.db, tag.ID)
+				if err != nil {
+					fmt.Println("Error: ", err)
+				}
+			}
+
 		case key.Matches(msg, m.keymap.up):
 			switch m.currentView {
 			case "entries":
@@ -175,63 +238,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		case key.Matches(msg, m.keymap.add):
-			switch m.currentView {
-			case "entries":
-				m.form = entryForm()
-				m.formActive = true
-			case "timers":
-				m.form = timerForm()
-				m.formActive = true
-			case "tags":
-				m.form = tagForm()
-				m.formActive = true
-			}
-			return m, nil
-
-		case key.Matches(msg, m.keymap.edit):
-			switch m.currentView {
-			case "entries":
-				entry := m.entries[m.entriesCursor]
-				m.form = entryEditForm(entry)
-				m.formActive = true
-
-			case "timers":
-				timer := m.timers[m.timersCursor]
-				m.form = timerEditForm(timer)
-				m.formActive = true
-
-			case "tags":
-				tag := m.tags[m.tagsCursor]
-				m.form = tagEditForm(tag)
-				m.formActive = true
-
-			}
-
-		case key.Matches(msg, m.keymap.delete):
-			switch m.currentView {
-			case "entries":
-				entry := m.entries[m.entriesCursor]
-				err := godb.DeleteEntry(context.Background(), m.db, entry.ID)
-				if err != nil {
-					fmt.Println("Error: ", err)
-				}
-			case "timers":
-				timer := m.timers[m.timersCursor]
-				err := godb.DeleteTimer(context.Background(), m.db, timer.ID)
-
-				if err != nil {
-					fmt.Println("Error: ", err)
-				}
-
-			case "tags":
-				tag := m.tags[m.tagsCursor]
-				err := godb.DeleteTag(context.Background(), m.db, tag.ID)
-				if err != nil {
-					fmt.Println("Error: ", err)
-				}
-			}
-
 		case key.Matches(msg, m.keymap.left):
 			m.navigateMenu(-1)
 			return m, nil
@@ -258,6 +264,7 @@ func (m model) View() string {
 	var s string
 	var err error
 	if m.formActive {
+		m.form.Init()
 		return m.form.View()
 	}
 	switch m.currentView {

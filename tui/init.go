@@ -39,7 +39,7 @@ func initialModel(db *sql.DB) model {
 		currentView: "timers",
 		keymap:      keymap,
 		help:        help.New(),
-		form:        entryForm(),
+		form:        tagForm(),
 		formActive:  false,
 	}
 }
@@ -53,5 +53,9 @@ func (m model) Init() tea.Cmd {
 	if err != nil {
 		return tea.Quit
 	}
-	return m.stopwatch.Init()
+	err = m.updateTags()
+	if err != nil {
+		return tea.Quit
+	}
+	return nil
 }
