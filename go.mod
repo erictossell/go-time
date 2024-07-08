@@ -6,6 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.26.6
 	github.com/charmbracelet/huh v0.4.2
+	github.com/charmbracelet/huh/spinner v0.0.0-20240702124906-34ae8b72b63e
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/spf13/cobra v1.8.1
 )

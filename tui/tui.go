@@ -8,8 +8,10 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/huh/spinner"
 	godb "go-time/db"
 	"go-time/stopwatch"
+	"go-time/util"
 	"os"
 	"time"
 )
@@ -102,8 +104,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if err != nil {
 					fmt.Println("Error: ", err)
 				}
-
-				err = godb.CreateTimer(context.Background(), m.db, name, tagsParsed)
+				action := func() {
+					err := godb.CreateTimer(context.Background(), m.db, name, tagsParsed)
+					if err != nil {
+						fmt.Println("Error: ", err)
+					}
+					time.Sleep(1 * time.Second)
+				}
+				err := spinner.New().
+					Title("Creating timer...").
+					Action(action).
+					Run()
 				if err != nil {
 					fmt.Println("Error: ", err)
 				}
@@ -139,16 +150,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}
-			tagsStr := make([]string, len(tags))
+			tagsStr := util.Map(tags, func(tag godb.Tag) string {
+				return tag.Name
+			})
 			switch m.currentView {
 			case "entries":
 				m.form = entryForm(tagsStr)
+
 				m.formActive = true
 			case "timers":
 				m.form = timerForm(tagsStr)
+
 				m.formActive = true
 			case "tags":
 				m.form = tagForm()
+
 				m.formActive = true
 			}
 			return m, nil
@@ -158,7 +174,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}
-			tagsStr := make([]string, len(tags))
+			tagsStr := util.Map(tags, func(tag godb.Tag) string {
+				return tag.Name
+			})
 
 			switch m.currentView {
 			case "entries":

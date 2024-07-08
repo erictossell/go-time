@@ -39,7 +39,7 @@ func createTables(db *sql.DB) error {
     );
     CREATE TABLE IF NOT EXISTS tags (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name TEXT NOT NULL
+	name TEXT NOT NULL UNIQUE
     );
     CREATE TABLE IF NOT EXISTS entry_tags (
 	    entry_id INTEGER NOT NULL,
