@@ -29,6 +29,28 @@ func timerForm(tags []string) *huh.Form {
 	)
 }
 
+func TimerForm(tags []string) *huh.Form {
+
+	options := make([]huh.Option[string], len(tags))
+	for i, tag := range tags {
+		options[i] = huh.NewOption(tag, tag)
+	}
+
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Key("name").
+				Title("Name"),
+			huh.NewMultiSelect[string]().
+				Key("tags").
+				Title("Tags").
+				Options(options...).
+				Limit(3).
+				Value(&tags),
+		),
+	)
+}
+
 func timerEditForm(timer db.Timer, tags []string) *huh.Form {
 	options := make([]huh.Option[string], len(tags))
 	for i, tag := range tags {
