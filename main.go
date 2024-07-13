@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	config := config.New("go-time", "config.json")
+	config := config.New("go-time", "config.toml")
 	configDir := filepath.Join(os.Getenv("HOME"), ".config", "go-time")
 	dbFile := config.Get("db_path", "go-time.db").(string)
 

@@ -1,16 +1,21 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
 	ConfigDir  string
 	ConfigFile string
-	Settings   map[string]interface{}
+	Settings   AppConfig
+}
+
+type AppConfig struct {
+	DBPath      string `toml:"db_path"`
+	CommandMode string `toml:"command_mode"`
 }
 
 func New(appname string, filename string) *Config {
@@ -24,46 +29,45 @@ func New(appname string, filename string) *Config {
 	c := &Config{
 		ConfigDir:  configDir,
 		ConfigFile: configFile,
-		Settings:   make(map[string]interface{}),
-	}
-
-	// Set default values
-	defaults := map[string]interface{}{
-		"db_path":      "go-time.db", // The relative path to the DB
-		"command_mode": "cli",        // Default command mode
+		Settings: AppConfig{
+			DBPath:      "go-time.db",
+			CommandMode: "cli",
+		},
 	}
 
 	if _, err := os.Stat(configFile); err == nil {
 		c.Load()
 	} else {
-		c.Settings = defaults
-		c.Save()
+		c.SaveWithComments()
 	}
 
 	return c
 }
 
 func (c *Config) Load() error {
-	data, err := os.ReadFile(c.ConfigFile)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, &c.Settings)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := toml.DecodeFile(c.ConfigFile, &c.Settings)
+	return err
 }
 
 func (c *Config) Save() error {
-	data, err := json.MarshalIndent(c.Settings, "", "  ")
+	f, err := os.Create(c.ConfigFile)
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
-	err = os.WriteFile(c.ConfigFile, data, 0644)
+	return toml.NewEncoder(f).Encode(c.Settings)
+}
+
+func (c *Config) SaveWithComments() error {
+	configWithComments := `# Path to the SQLite database file
+db_path = "` + c.Settings.DBPath + `"
+
+# Mode in which the application runs (cli, tui, help)
+command_mode = "` + c.Settings.CommandMode + `"
+`
+
+	err := os.WriteFile(c.ConfigFile, []byte(configWithComments), 0644)
 	if err != nil {
 		return err
 	}
@@ -72,27 +76,35 @@ func (c *Config) Save() error {
 }
 
 func (c *Config) Set(key string, value interface{}) {
-	c.Settings[key] = value
+	switch key {
+	case "db_path":
+		c.Settings.DBPath = value.(string)
+	case "command_mode":
+		c.Settings.CommandMode = value.(string)
+	}
 	c.Save()
 }
 
 func (c *Config) Get(key string, defaultValue interface{}) interface{} {
-	if value, ok := c.Settings[key]; ok {
-		return value
+	switch key {
+	case "db_path":
+		if c.Settings.DBPath != "" {
+			return c.Settings.DBPath
+		}
+	case "command_mode":
+		if c.Settings.CommandMode != "" {
+			return c.Settings.CommandMode
+		}
 	}
 	return defaultValue
 }
 
 func (c *Config) Remove(key string) {
-	delete(c.Settings, key)
+	switch key {
+	case "db_path":
+		c.Settings.DBPath = ""
+	case "command_mode":
+		c.Settings.CommandMode = ""
+	}
 	c.Save()
-}
-
-// Example usage:
-func main() {
-	config := New("go-time", "config.json")
-	config.Set("db_path", "go-time.db")
-	fmt.Println(config.Get("db_path", "default.db"))
-	config.Remove("db_path")
-	fmt.Println(config.Get("db_path", "default.db"))
 }
