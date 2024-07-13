@@ -175,14 +175,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keymap.edit):
-			tags, err := godb.GetTags(context.Background(), m.db)
+			tagsStr, err := godb.GetTagsAsStrArr(context.Background(), m.db)
 			if err != nil {
 				fmt.Println("Error: ", err)
 			}
-			tagsStr := util.Map(tags, func(tag godb.Tag) string {
-				return tag.Name
-			})
-
 			switch m.currentView {
 			case "entries":
 				entry := m.entries[m.entriesCursor]
@@ -367,13 +363,4 @@ func (m *model) navigateMenu(direction int) {
 
 		m.currentView = newView
 	}
-}
-
-func indexOf(slice []string, value string) int {
-	for i, item := range slice {
-		if item == value {
-			return i
-		}
-	}
-	return -1
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go-time/pkgs/util"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -98,4 +100,16 @@ func GetTags(ctx context.Context, db *sql.DB) ([]Tag, error) {
 		return nil, fmt.Errorf("error iterating over rows: %w", err)
 	}
 	return tags, nil
+}
+
+func GetTagsAsStrArr(ctx context.Context, db *sql.DB) ([]string, error) {
+	dbTags, err := GetTags(ctx, db)
+	if err != nil {
+		log.Printf("Error getting tags: %v", err)
+		return nil, fmt.Errorf("erro fetching tags: %w", err)
+	}
+	tagsStr := util.Map(dbTags, func(tag Tag) string {
+		return tag.Name
+	})
+	return tagsStr, err
 }

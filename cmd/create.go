@@ -9,9 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	godb "go-time/db"
 	"go-time/pkgs/tui"
-	"go-time/pkgs/util"
 	"log"
-	"time"
 )
 
 func CreateCmd(db *sql.DB) *cobra.Command {
@@ -29,37 +27,31 @@ func CreateCmd(db *sql.DB) *cobra.Command {
 
 			switch recordType {
 			case "timer":
-				dbTags, err := godb.GetTags(ctx, db)
-				if err != nil {
-					log.Printf("Error getting tags: %v", err)
-					return
-				}
-				tagsStr := util.Map(dbTags, func(tag godb.Tag) string {
-					return tag.Name
-				})
+				tagsStr, err := godb.GetTagsAsStrArr(ctx, db)
 
 				form = tui.TimerForm(tagsStr)
 				form.Init()
+
 				err = form.Run()
 				if err != nil {
 					log.Printf("Error running timer form: %v", err)
 					return
 				}
+
 				name = form.GetString("name")
 				tags := form.Get("tags")
-
-				// Convert tags to []string
 				tagsParsed, ok := tags.([]string)
 				if !ok {
 					fmt.Println("Error: tags is not of type []string")
 				}
+
 				action := func() {
-					err := godb.CreateTimer(context.Background(), db, name, tagsParsed)
+					err := godb.CreateTimer(ctx, db, name, tagsParsed)
 					if err != nil {
 						fmt.Println("Error: ", err)
 					}
-					time.Sleep(1 * time.Second)
 				}
+
 				err = spinner.New().
 					Title("Creating timer...").
 					Action(action).
@@ -69,6 +61,7 @@ func CreateCmd(db *sql.DB) *cobra.Command {
 				} else {
 					fmt.Println("Timer started for task:", name)
 				}
+
 			case "entry":
 				// Add logic to create an entry
 				log.Println("Entry created.")
