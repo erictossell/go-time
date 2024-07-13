@@ -14,7 +14,6 @@ func main() {
 	configDir := filepath.Join(os.Getenv("HOME"), ".config", "go-time")
 	dbFile := filepath.Join(configDir, "go-time.db")
 
-	// Check if the directory exists, create if not
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		err := os.MkdirAll(configDir, os.ModePerm)
 		if err != nil {

@@ -15,7 +15,10 @@ func InitDB(dbFile string) (*sql.DB, error) {
 	}
 
 	if err := createTables(db); err != nil {
-		db.Close()
+		err := db.Close()
+		if err != nil {
+			return nil, err
+		}
 		return nil, err
 	}
 
@@ -45,7 +48,7 @@ func createTables(db *sql.DB) error {
 	    entry_id INTEGER NOT NULL,
 	    tag_id INTEGER NOT NULL,
 	    FOREIGN KEY (entry_id) REFERENCES entries(id),
-	    FOREIGN KEY (tag_id) REFERENCES tags(id)
+	    FOREIGN KEY (tag_id) REFERENCES tags(id),
 	    PRIMARY KEY (entry_id, tag_id)
     );
     CREATE TABLE IF NOT EXISTS timer_tags (

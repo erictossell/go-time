@@ -8,8 +8,8 @@ import (
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/spf13/cobra"
 	godb "go-time/db"
-	tui "go-time/tui"
-	util "go-time/util"
+	"go-time/pkgs/tui"
+	"go-time/pkgs/util"
 	"log"
 	"time"
 )
@@ -29,18 +29,22 @@ func CreateCmd(db *sql.DB) *cobra.Command {
 
 			switch recordType {
 			case "timer":
-				db_tags, err := godb.GetTags(ctx, db)
+				dbTags, err := godb.GetTags(ctx, db)
 				if err != nil {
 					log.Printf("Error getting tags: %v", err)
 					return
 				}
-				tagsStr := util.Map(db_tags, func(tag godb.Tag) string {
+				tagsStr := util.Map(dbTags, func(tag godb.Tag) string {
 					return tag.Name
 				})
 
 				form = tui.TimerForm(tagsStr)
 				form.Init()
-				form.Run()
+				err = form.Run()
+				if err != nil {
+					log.Printf("Error running timer form: %v", err)
+					return
+				}
 				name = form.GetString("name")
 				tags := form.Get("tags")
 

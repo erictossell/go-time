@@ -3,7 +3,7 @@ package cmd
 import (
 	"database/sql"
 	"github.com/spf13/cobra"
-	"go-time/tui"
+	"go-time/pkgs/tui"
 	"log"
 )
 

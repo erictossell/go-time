@@ -20,7 +20,7 @@ type keymap struct {
 	quit   key.Binding
 }
 
-func initialModel(db *sql.DB) model {
+func initialModel(db *sql.DB) *model {
 	keymap := keymap{
 		start: key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "start timer")),
 		stop:  key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "stop timer")),
@@ -34,7 +34,7 @@ func initialModel(db *sql.DB) model {
 		add:    key.NewBinding(key.WithKeys("enter", " "), key.WithHelp("enter", "select")),
 		delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "delete")),
 	}
-	return model{
+	return &model{
 		db:          db,
 		currentView: "timers",
 		keymap:      keymap,
@@ -44,7 +44,7 @@ func initialModel(db *sql.DB) model {
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	err := m.updateTimers()
 	if err != nil {
 		return tea.Quit

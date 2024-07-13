@@ -21,7 +21,10 @@
 # Go workspace file
 go.work
 
-*.db
 
+*.db
+*.sqlite
+
+.idea
 result
 vendor

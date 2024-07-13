@@ -4,7 +4,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"time"
 
-	db "go-time/db"
+	"go-time/db"
 )
 
 func timerForm(tags []string) *huh.Form {

@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
 	godb "go-time/db"
-	"go-time/stopwatch"
-	"go-time/util"
+	"go-time/pkgs/stopwatch"
+	"go-time/pkgs/util"
 	"os"
 	"time"
 )
@@ -40,7 +40,12 @@ func Main(db *sql.DB) {
 			fmt.Println("fatal:", err)
 			os.Exit(1)
 		}
-		defer f.Close()
+		defer func(f *os.File) {
+			err := f.Close()
+			if err != nil {
+
+			}
+		}(f)
 	}
 	p := tea.NewProgram(initialModel(db))
 	if _, err := p.Run(); err != nil {
@@ -49,7 +54,7 @@ func Main(db *sql.DB) {
 	}
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	err := m.updateTimers()
@@ -278,7 +283,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	var s string
 	var err error
 	if m.formActive {
@@ -355,7 +360,7 @@ func (m *model) startStopwatch(timer godb.Timer) tea.Cmd {
 
 func (m *model) navigateMenu(direction int) {
 	menuItems := []string{"entries", "timers", "timer", "tags"}
-	currentIndex := indexOf(menuItems, m.currentView)
+	currentIndex := util.IndexOf(menuItems, m.currentView)
 	if currentIndex != -1 {
 		newIndex := (currentIndex + direction + len(menuItems)) % len(menuItems)
 		newView := menuItems[newIndex]
