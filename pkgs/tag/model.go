@@ -16,28 +16,6 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
-func addTagsToEntry(db *sql.DB, entryID int, tags []string) error {
-	for _, tagName := range tags {
-
-		_, err := db.Exec("INSERT OR IGNORE INTO tags (name) VALUES (?)", tagName)
-		if err != nil {
-			return fmt.Errorf("error inserting tag: %w", err)
-		}
-
-		var tagID int
-		err = db.QueryRow("SELECT id FROM tags WHERE name = ?", tagName).Scan(&tagID)
-		if err != nil {
-			return fmt.Errorf("error getting tag ID: %w", err)
-		}
-
-		_, err = db.Exec("INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)", entryID, tagID)
-		if err != nil {
-			return fmt.Errorf("error linking tag with entry: %w", err)
-		}
-	}
-	return nil
-}
-
 func CreateTag(ctx context.Context, db *sql.DB, name string) error {
 	_, err := db.Exec("INSERT INTO tags (name) VALUES (?)", name)
 	if err != nil {

@@ -30,7 +30,7 @@ func initialModel(db *sql.DB) *model {
 		left:  key.NewBinding(key.WithKeys("h", "left"), key.WithHelp("h", "left")),
 		right: key.NewBinding(key.WithKeys("l", "right"), key.WithHelp("l", "right")),
 
-		quit:   key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
+		quit:   key.NewBinding(key.WithKeys("q", "Esc"), key.WithHelp("q", "quit")),
 		edit:   key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
 		add:    key.NewBinding(key.WithKeys("enter", " "), key.WithHelp("enter", "select")),
 		delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "delete")),

@@ -26,42 +26,79 @@ func InitDB(dbFile string) (*sql.DB, error) {
 }
 
 func createTables(db *sql.DB) error {
-	createTablesSQL := `
-	CREATE TABLE IF NOT EXISTS entries (
+	tableCreators := []func(*sql.DB) error{
+		createEntriesTable,
+		createTimersTable,
+		createTagsTable,
+		createEntryTagsTable,
+		createTimerTagsTable,
+	}
+
+	for _, createFunc := range tableCreators {
+		if err := createFunc(db); err != nil {
+			return err // Stops at the first error
+		}
+	}
+	return nil
+}
+
+func createEntriesTable(db *sql.DB) error {
+	sql := `
+    CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
         start_time DATETIME NOT NULL,
         end_time DATETIME NOT NULL
-    );
+    );`
+	_, err := db.Exec(sql)
+	return err
+}
+
+func createTimersTable(db *sql.DB) error {
+	sql := `
     CREATE TABLE IF NOT EXISTS timers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         is_running BOOLEAN NOT NULL,
         name TEXT,
         start_time DATETIME
-    );
+    );`
+	_, err := db.Exec(sql)
+	return err
+}
+
+func createTagsTable(db *sql.DB) error {
+	sql := `
     CREATE TABLE IF NOT EXISTS tags (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name TEXT NOT NULL UNIQUE
-    );
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+    );`
+	_, err := db.Exec(sql)
+	return err
+}
+
+func createEntryTagsTable(db *sql.DB) error {
+	sql := `
     CREATE TABLE IF NOT EXISTS entry_tags (
-	    entry_id INTEGER NOT NULL,
-	    tag_id INTEGER NOT NULL,
-	    FOREIGN KEY (entry_id) REFERENCES entries(id),
-	    FOREIGN KEY (tag_id) REFERENCES tags(id),
-	    PRIMARY KEY (entry_id, tag_id)
-    );
+        entry_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        FOREIGN KEY (entry_id) REFERENCES entries(id),
+        FOREIGN KEY (tag_id) REFERENCES tags(id),
+        PRIMARY KEY (entry_id, tag_id)
+    );`
+	_, err := db.Exec(sql)
+	return err
+}
+
+func createTimerTagsTable(db *sql.DB) error {
+	sql := `
     CREATE TABLE IF NOT EXISTS timer_tags (
-    	timer_id INTEGER NOT NULL,
-    	tag_id INTEGER NOT NULL,
-    	PRIMARY KEY (timer_id, tag_id),
-    	FOREIGN KEY (timer_id) REFERENCES timers(id) ON DELETE CASCADE,
-    	FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-    );
-	`
-	_, err := db.Exec(createTablesSQL)
-	if err != nil {
-		return fmt.Errorf("error creating tables: %w", err)
-	}
-	return nil
+        timer_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        PRIMARY KEY (timer_id, tag_id),
+        FOREIGN KEY (timer_id) REFERENCES timers(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    );`
+	_, err := db.Exec(sql)
+	return err
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
-	"go-time/pkgs/tag"
 
 	"go-time/pkgs/util"
 )
@@ -63,17 +62,11 @@ func EditForm(entry Entry, tags []string) *huh.Form {
 	)
 }
 
-func HandleForm(ctx context.Context, db *sql.DB) {
-	// Fetch the tags from the database
-	tagsStr, err := tag.GetTagsAsStrArr(ctx, db)
-	if err != nil {
-		log.Printf("Error fetching tags: %v", err)
-		return
-	}
+func HandleForm(ctx context.Context, db *sql.DB, tags []string) {
 
 	// Initialize the form with the tags
-	form := Form(tagsStr)
-	if err = form.Run(); err != nil {
+	form := Form(tags)
+	if err := form.Run(); err != nil {
 		log.Printf("Error running entry form: %v", err)
 		return
 	}

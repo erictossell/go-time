@@ -29,7 +29,11 @@ func CreateCmd(db *sql.DB) *cobra.Command {
 				timer.HandleForm(ctx, db)
 
 			case "entry":
-				entry.HandleForm(ctx, db)
+				tags, err := tag.GetTagsAsStrArr(ctx, db)
+				if err != nil {
+					log.Fatal(err)
+				}
+				entry.HandleForm(ctx, db, tags)
 
 			case "tag":
 				tag.HandleForm(ctx, db)
