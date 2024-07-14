@@ -1,9 +1,10 @@
-package db
+package timer
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go-time/pkgs/entry"
 	"log"
 	"time"
 )
@@ -120,7 +121,7 @@ func StopTimer(ctx context.Context, db *sql.DB, timerName string) error {
 	}
 
 	endTime := time.Now()
-	if err = CreateEntry(ctx, tx, timerName, startTime, endTime, tags); err != nil {
+	if err = entry.CreateEntry(ctx, tx, timerName, startTime, endTime, tags); err != nil {
 		return fmt.Errorf("error saving time entry: %w", err)
 	}
 

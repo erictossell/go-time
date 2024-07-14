@@ -1,9 +1,10 @@
-package db
+package tag
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"go-time/pkgs/util"
 	"log"
 
@@ -35,34 +36,6 @@ func addTagsToEntry(db *sql.DB, entryID int, tags []string) error {
 		}
 	}
 	return nil
-}
-
-func getEntriesByTag(db *sql.DB, tagName string) ([]Entry, error) {
-	var entries []Entry
-	query := `
-    SELECT e.id, e.name, e.description, e.start_time, e.end_time
-    FROM entries e
-    INNER JOIN entry_tags et ON e.id = et.entry_id
-    INNER JOIN tags t ON et.tag_id = t.id
-    WHERE t.name = ?`
-
-	rows, err := db.Query(query, tagName)
-	if err != nil {
-		return nil, fmt.Errorf("error querying entries by tag: %w", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var entry Entry
-		if err := rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.StartTime, &entry.EndTime); err != nil {
-			return nil, fmt.Errorf("error scanning entry: %w", err)
-		}
-		entries = append(entries, entry)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over rows: %w", err)
-	}
-	return entries, nil
 }
 
 func CreateTag(ctx context.Context, db *sql.DB, name string) error {

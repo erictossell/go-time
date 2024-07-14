@@ -3,18 +3,17 @@ package cmd
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/huh/spinner"
+
 	"github.com/spf13/cobra"
-	godb "go-time/db"
-	"go-time/pkgs/tui"
+
+	"go-time/pkgs/entry"
+	"go-time/pkgs/tag"
+	"go-time/pkgs/timer"
+
 	"log"
 )
 
 func CreateCmd(db *sql.DB) *cobra.Command {
-	var name string
-	var form *huh.Form
 
 	cmd := &cobra.Command{
 		Use:   "create [record type]",
@@ -27,47 +26,14 @@ func CreateCmd(db *sql.DB) *cobra.Command {
 
 			switch recordType {
 			case "timer":
-				tagsStr, err := godb.GetTagsAsStrArr(ctx, db)
-
-				form = tui.TimerForm(tagsStr)
-				form.Init()
-
-				err = form.Run()
-				if err != nil {
-					log.Printf("Error running timer form: %v", err)
-					return
-				}
-
-				name = form.GetString("name")
-				tags := form.Get("tags")
-				tagsParsed, ok := tags.([]string)
-				if !ok {
-					fmt.Println("Error: tags is not of type []string")
-				}
-
-				action := func() {
-					err := godb.CreateTimer(ctx, db, name, tagsParsed)
-					if err != nil {
-						fmt.Println("Error: ", err)
-					}
-				}
-
-				err = spinner.New().
-					Title("Creating timer...").
-					Action(action).
-					Run()
-				if err != nil {
-					fmt.Println("Error: ", err)
-				} else {
-					fmt.Println("Timer started for task:", name)
-				}
+				timer.HandleForm(ctx, db)
 
 			case "entry":
-				// Add logic to create an entry
-				log.Println("Entry created.")
+				entry.HandleForm(ctx, db)
+
 			case "tag":
-				// Add logic to create a tag
-				log.Println("Tag created.")
+				tag.HandleForm(ctx, db)
+
 			default:
 				log.Println("Invalid record type. Use the --type flag to specify 'entry', 'timer', or 'tag'.")
 			}
