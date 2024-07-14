@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/spf13/cobra"
-	godb "go-time/db"
+	"go-time/pkgs/timer"
 	"log"
 )
 
@@ -23,7 +23,7 @@ func StopCmd(db *sql.DB) *cobra.Command {
 				return
 			}
 
-			if err := godb.StopTimer(ctx, db, taskName); err != nil {
+			if err := timer.StopTimer(ctx, db, taskName); err != nil {
 				log.Printf("Error stopping timer: %v", err)
 			} else {
 				log.Println("Timer stopped for task:", taskName)

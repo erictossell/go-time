@@ -64,8 +64,8 @@ func (m model) entriesView() string {
 		if m.entriesCursor == i {
 			cursor = ">"
 		}
-		line := fmt.Sprintf("%s ID: %d, Name: %s, Description: %s, Start: %s, End: %s",
-			cursor, entry.ID, entry.Name, entry.Description, entry.StartTime.Format("2006-01-02 15:04:05"),
+		line := fmt.Sprintf("%s ID: %d, Name: %s, Start: %s, End: %s",
+			cursor, entry.ID, entry.Name, entry.StartTime.Format("2006-01-02 15:04:05"),
 			entry.EndTime.Format("2006-01-02 15:04:05"))
 
 		view += line + "\n"

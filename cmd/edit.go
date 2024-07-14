@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
-	godb "go-time/db" 
+	"go-time/pkgs/entry"
 )
-
 
 func EditCmd(db *sql.DB) *cobra.Command {
 	var id int
@@ -21,7 +20,7 @@ func EditCmd(db *sql.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 
-			err := godb.EditEntry(ctx, db, id, name, description, tags)
+			err := entry.EditEntry(ctx, db, id, name, description, tags)
 			if err != nil {
 				fmt.Println("Error editing time entry:", err)
 				return

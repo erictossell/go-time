@@ -1,9 +1,10 @@
-package db
+package timer
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go-time/pkgs/entry"
 	"log"
 	"time"
 )
@@ -120,12 +121,41 @@ func StopTimer(ctx context.Context, db *sql.DB, timerName string) error {
 	}
 
 	endTime := time.Now()
-	if err = CreateEntry(ctx, tx, timerName, startTime, endTime, tags); err != nil {
+	if err = entry.CreateEntry(ctx, tx, timerName, startTime, endTime, tags); err != nil {
 		return fmt.Errorf("error saving time entry: %w", err)
 	}
 
 	if _, err = tx.ExecContext(ctx, "UPDATE timers SET is_running = 0 WHERE name = ?", timerName); err != nil {
 		return fmt.Errorf("error updating timer state: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction: %w", err)
+	}
+
+	return nil
+}
+
+func DeleteTimer(ctx context.Context, db *sql.DB, timerID int) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("error starting transaction: %w", err)
+	}
+
+	defer func() {
+		if rbErr := tx.Rollback(); rbErr != nil && rbErr != sql.ErrTxDone {
+			log.Printf("transaction rollback error: %v", rbErr)
+		}
+	}()
+
+	_, err = tx.ExecContext(ctx, "DELETE FROM timer_tags WHERE timer_id = ?", timerID)
+	if err != nil {
+		return fmt.Errorf("error deleting timer tags: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, "DELETE FROM timers WHERE id = ?", timerID)
+	if err != nil {
+		return fmt.Errorf("error deleting timer: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {

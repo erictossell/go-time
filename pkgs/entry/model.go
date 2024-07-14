@@ -1,4 +1,4 @@
-package db
+package entry
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"go-time/pkgs/tag"
 )
 
 type Entry struct {
@@ -16,7 +17,7 @@ type Entry struct {
 	Description sql.NullString `json:"description"`
 	StartTime   time.Time      `json:"start_time"`
 	EndTime     time.Time      `json:"end_time"`
-	Tags        []Tag          `json:"tags"`
+	Tags        []tag.Tag      `json:"tags"`
 }
 
 func ReadEntries(ctx context.Context, db *sql.DB) ([]Entry, error) {
@@ -161,5 +162,55 @@ func DeleteEntry(ctx context.Context, db *sql.DB, id int) error {
 		return fmt.Errorf("error committing transaction: %w", err)
 	}
 
+	return nil
+}
+
+func GetEntriesByTag(db *sql.DB, tagName string) ([]Entry, error) {
+	var entries []Entry
+	query := `
+    SELECT e.id, e.name, e.description, e.start_time, e.end_time
+    FROM entries e
+    INNER JOIN entry_tags et ON e.id = et.entry_id
+    INNER JOIN tags t ON et.tag_id = t.id
+    WHERE t.name = ?`
+
+	rows, err := db.Query(query, tagName)
+	if err != nil {
+		return nil, fmt.Errorf("error querying entries by tag: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry Entry
+		if err := rows.Scan(&entry.ID, &entry.Name, &entry.Description, &entry.StartTime, &entry.EndTime); err != nil {
+			return nil, fmt.Errorf("error scanning entry: %w", err)
+		}
+		entries = append(entries, entry)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over rows: %w", err)
+	}
+	return entries, nil
+}
+
+func AddTagsToEntry(db *sql.DB, entryID int, tags []string) error {
+	for _, tagName := range tags {
+
+		_, err := db.Exec("INSERT OR IGNORE INTO tags (name) VALUES (?)", tagName)
+		if err != nil {
+			return fmt.Errorf("error inserting tag: %w", err)
+		}
+
+		var tagID int
+		err = db.QueryRow("SELECT id FROM tags WHERE name = ?", tagName).Scan(&tagID)
+		if err != nil {
+			return fmt.Errorf("error getting tag ID: %w", err)
+		}
+
+		_, err = db.Exec("INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)", entryID, tagID)
+		if err != nil {
+			return fmt.Errorf("error linking tag with entry: %w", err)
+		}
+	}
 	return nil
 }

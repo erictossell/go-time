@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
-	godb "go-time/db"
+	"go-time/pkgs/entry"
+	"go-time/pkgs/timer"
 	"strings"
 	"time"
 )
@@ -37,12 +38,11 @@ func ReadCmd(db *sql.DB) *cobra.Command {
 }
 
 func readEntries(ctx context.Context, db *sql.DB) {
-	entries, err := godb.ReadEntries(ctx, db)
+	entries, err := entry.ReadEntries(ctx, db)
 	if err != nil {
 		fmt.Println("Error listing time entries:", err)
 		return
 	}
-
 
 	getTagsForEntry := func(entryID int) ([]string, error) {
 		var tags []string
@@ -67,13 +67,11 @@ func readEntries(ctx context.Context, db *sql.DB) {
 		return tags, nil
 	}
 
-
 	idWidth := 4
 	nameWidth := 20
 
 	timeWidth := 25
-	tagsWidth := 20 
-
+	tagsWidth := 20
 
 	headerFormat := fmt.Sprintf("%%-%ds | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
 	rowFormat := fmt.Sprintf("%%-%dd | %%-%ds | %%-%ds | %%-%ds | %%-%ds\n", idWidth, nameWidth, tagsWidth, timeWidth, timeWidth)
@@ -91,7 +89,7 @@ func readEntries(ctx context.Context, db *sql.DB) {
 }
 
 func readTimers(ctx context.Context, db *sql.DB) {
-	timers, err := godb.ReadTimers(ctx, db)
+	timers, err := timer.ReadTimers(ctx, db)
 	if err != nil {
 		fmt.Println("Error listing time entries:", err)
 		return

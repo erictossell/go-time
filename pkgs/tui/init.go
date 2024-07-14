@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"go-time/pkgs/tag"
 )
 
 type keymap struct {
@@ -20,7 +21,7 @@ type keymap struct {
 	quit   key.Binding
 }
 
-func initialModel(db *sql.DB) model {
+func initialModel(db *sql.DB) *model {
 	keymap := keymap{
 		start: key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "start timer")),
 		stop:  key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "stop timer")),
@@ -29,22 +30,22 @@ func initialModel(db *sql.DB) model {
 		left:  key.NewBinding(key.WithKeys("h", "left"), key.WithHelp("h", "left")),
 		right: key.NewBinding(key.WithKeys("l", "right"), key.WithHelp("l", "right")),
 
-		quit:   key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
+		quit:   key.NewBinding(key.WithKeys("q", "Esc"), key.WithHelp("q", "quit")),
 		edit:   key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit")),
 		add:    key.NewBinding(key.WithKeys("enter", " "), key.WithHelp("enter", "select")),
 		delete: key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "delete")),
 	}
-	return model{
+	return &model{
 		db:          db,
 		currentView: "timers",
 		keymap:      keymap,
 		help:        help.New(),
-		form:        entryForm(),
+		form:        tag.Form(),
 		formActive:  false,
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	err := m.updateTimers()
 	if err != nil {
 		return tea.Quit
@@ -53,5 +54,9 @@ func (m model) Init() tea.Cmd {
 	if err != nil {
 		return tea.Quit
 	}
-	return m.stopwatch.Init()
+	err = m.updateTags()
+	if err != nil {
+		return tea.Quit
+	}
+	return nil
 }

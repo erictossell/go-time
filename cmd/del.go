@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/spf13/cobra"
-	godb "go-time/db" 
+	"go-time/pkgs/entry"
 )
-
 
 func DelCmd(db *sql.DB) *cobra.Command {
 	var id int
@@ -19,7 +18,7 @@ func DelCmd(db *sql.DB) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
 
-			err := godb.DeleteEntry(ctx, db, id)
+			err := entry.DeleteEntry(ctx, db, id)
 			if err != nil {
 				fmt.Println("Error deleting time entry:", err)
 				return
